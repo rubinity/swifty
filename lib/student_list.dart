@@ -79,6 +79,13 @@ class _StudentList extends State<StudentList>{
 
     // api.
   }
+  
+  Image getImage(data){
+    var url = data["image"]["versions"]["micro"];
+    if (url != null)
+      return Image.network(url, width: 24, height: 24);
+    return Image(image: AssetImage("assets/42.jpg") , width: 24, height: 24,);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -92,14 +99,40 @@ class _StudentList extends State<StudentList>{
      children: [
         ... students.map((student)
          => GestureDetector(
-           onTap: ()=>{print(student.last_name),},
+           onTap: ()=>{print(student["last_name"]),},
            child: Container(
                color: Color(0xFF00babc),
                margin: EdgeInsets.all(4),
                padding: EdgeInsets.fromLTRB(12, 2, 12, 2),
            //     // constraints: BoxConstraints.loose(Size.fromHeight(100)) ,
-               child: Text(style: TextStyle(fontSize: 16, ), textAlign: TextAlign.start, student["first_name"] + ' ' + student["last_name"]
-           )
+               child: Row(
+                 children: [
+                   Column(
+                     children: [
+                       getImage(student)
+                     ],
+                   ),
+                   Column(
+                     children: [
+                   Row(
+                     children: [
+                       SizedBox(width: 10),
+                       Text(overflow: null, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold), textAlign: TextAlign.start, student["login"]
+                       ),
+                     ],
+                   ),
+                   // Row(
+                   //   mainAxisAlignment: MainAxisAlignment.start,
+                   //   children: [
+                   //     SizedBox(width: 10),
+                   //     Text(style: TextStyle(fontSize: 10, color: Colors.white), textAlign: TextAlign.start, student["displayname"]
+                   //     ),
+                   //   ],
+                   // ),
+                     ]
+                   )
+                 ],
+               )
            ),
          )
          ),
