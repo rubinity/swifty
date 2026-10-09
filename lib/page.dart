@@ -18,10 +18,19 @@ class AppPage extends StatelessWidget{
     // final screenWidth = MediaQuery.of(context).size.width;
     // final padWidth = screenWidth * 0.01;
     // print(["screen", screenWidth]);
+    goToPage(context, route){
+      if (ModalRoute.of(context)?.settings.name != route)
+        Navigator.pushNamed(context, route);
+      else
+        Navigator.pop(context);
+    }
+
+
     // TODO: implement build
     return (Scaffold(
       appBar: AppBar(
         title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SvgPicture.asset('assets/42.svg', height: 40,),
             SizedBox(width: 8),
@@ -33,7 +42,16 @@ class AppPage extends StatelessWidget{
                 title),
           ],
         ),
-        centerTitle: false,
+        // centerTitle: true,
+        // actions: [
+        //   PopupMenuButton(itemBuilder: PopupMenuEntry<>)
+        //
+        //   // IconButton(
+        //   //   icon: const Icon(Icons.settings_accessibility),
+        //   //   tooltip: "settings",
+        //   //   onPressed: () => { Navigator.pushNamed(context, "/auth")
+        //   //   },),
+        // ],
         // backgroundColor: Color(0xFF8A189C),
         backgroundColor: Colors.black,
         iconTheme: IconThemeData(color: Colors.white),
@@ -55,6 +73,30 @@ class AppPage extends StatelessWidget{
         ),
 
       ),
+      endDrawer: Drawer(width: 200, backgroundColor: Colors.blueGrey[100],
+        child: ListView(
+        children: [
+          // const DrawerHeader(child: Text("header")),
+          ListTile(
+            leading: Icon(Icons.settings),
+            title: Text("Settings"),
+            onTap: () => {goToPage(context, "/auth")},
+          ),
+          ListTile(
+            leading: Icon(Icons.search),
+            title: Text("Search"),
+            onTap: () => {goToPage(context, "/auth")},
+            // shape: Border(bottom: BorderSide())
+          ),
+          ListTile(
+            leading: Icon(Icons.home),
+            title: Text("Home"),
+            onTap: () => {goToPage(context, "/")},
+            // onTap: goto(context, "/"),
+            shape: Border(top: BorderSide(color: Colors.grey, width: 3))
+          ),
+        ],
+      ),) ,
       body: SafeArea(child: Container(color: Colors.grey,
           child: body))));
       }

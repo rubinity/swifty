@@ -22,22 +22,55 @@ class Api42{
 
   AuthService authService;
   List<dynamic> students = [];
+  String errorStatus = "";
+
+
   Future<void> getData() async {
+    print("getting data");
     // Map <String, String> map;
     var token = authService.getTokenData()["access_token"];
+    if (token == null) {
+      await authService.authorize();
+      token = authService.getTokenData()["access_token"];
+    }
     // var a = token["access_token"];
     print("token ${token}");
-    Response resp = await get(Uri.parse('https://api.intra.42.fr/v2/campus/39/users?page[size]=20'), headers: {"Authorization": "Bearer $token"});
-   // HttpHeaders
+    Response resp = await get(
+          Uri.parse('https://api.intra.42.fr/v2/campus/39/users?page[size]=20'),
+          // 'https://api.intra.42.fr/v2/campus/39/users?page[size]=20'
+          headers: {"Authorization": "Bearer $token"});
+    // final nString = "4553etewt".substring(0, 3);
+    //
+    //     print("headers: ${resp.headers}");
+          final status = getStatus(resp.headers);
+
+          if (status != 200) {
+            errorStatus = resp.headers["status"]!;
+          }
+
+          print("status: ${status}");
+          students = await json.decode(resp.body);
+
+          print("we got students");
+    // HttpHeaders
    // Response resp = await get(Uri.parse('https://jsonplaceholder.typicode.com/posts/1'));
-   students = await json.decode(resp.body);
-   print("we got students");
+
    // print(students[0]);
    // print(students.runtimeType);
    //
 
    // print(students[0]);
    //  students = json.decode(content);
+  }
+
+  int getStatus(Map<String, String> headers){
+    String statusString = headers["status"]!.substring(0, 3);
+    int status = int.parse(statusString) ;
+    return status;
+  }
+
+  String getErrorStatus() {
+    return errorStatus;
   }
 }
 

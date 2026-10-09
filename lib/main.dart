@@ -7,10 +7,15 @@ import 'widgets.dart' as w;
 import 'page.dart';
 import 'student_list.dart';
 import 'authgate.dart';
+import 'package:path_provider/path_provider.dart';
 
-void main()
-    {
+late final String appPath;
+
+Future<void> main()
+    async {
+      WidgetsFlutterBinding.ensureInitialized();
       AuthService authService = AuthService();
+      appPath = (await getApplicationDocumentsDirectory()).path;
       // Api42 api = Api42();
       runApp(
           MaterialApp(
@@ -20,8 +25,9 @@ void main()
       ),
       // home: AppPage(title: 'AuthGate', body: AuthGate()),
       // initialRoute: '/home',
-      routes: {'/': (context) => AppPage(title: 'AuthGate', body: AuthGate(authService: authService)),
-        '/home': (context) => AppPage(title: 'Students', body: StudentList(authService: authService)),
+      routes: {
+        '/auth': (context) => AppPage(title: 'AuthGate', body: AuthGate(authService: authService)),
+        '/': (context) => AppPage(title: 'Students', body: StudentList(authService: authService)),
       },
       // home: AppPage(title: 'Students', body: StudentList()),
     ));

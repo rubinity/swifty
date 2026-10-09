@@ -5,6 +5,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'student.dart';
 import 'api.dart';
 import 'package:swifty/oauth.dart';
+import 'package:swifty/time.dart';
 
 
 // class MyList extends ListView{
@@ -49,13 +50,21 @@ class _StudentList extends State<StudentList>{
 
   void getList() async{
     // Api42 api = Api42();
-    await api.getData();
+    try {
+      await api.getData();
+    }
+    catch(e){
+      print("error:");
+      print(e);
+      return;
+    }
     // stuList = api.students;
 
     // students = jsonEncode(stuList);
     // print("list: ${stuList[0]}");
     if (!mounted)
       return;
+
     setState(() {
       print("setting state");
       students = api.students;
@@ -97,6 +106,7 @@ class _StudentList extends State<StudentList>{
      ListView(
     padding: EdgeInsets.symmetric(vertical: 4, horizontal: 2),
      children: [
+
         ... students.map((student)
          => GestureDetector(
            onTap: ()=>{print(student["last_name"]),},
