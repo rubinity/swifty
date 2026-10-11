@@ -6,6 +6,7 @@ import 'api.dart';
 import 'widgets.dart' as w;
 import 'page.dart';
 import 'student_list.dart';
+import 'student.dart';
 import 'authgate.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -16,7 +17,7 @@ Future<void> main()
       WidgetsFlutterBinding.ensureInitialized();
       AuthService authService = AuthService();
       appPath = (await getApplicationDocumentsDirectory()).path;
-      // Api42 api = Api42();
+      Api42 api = Api42(authService: authService);
       runApp(
           MaterialApp(
       title: 'Swiftanion',
@@ -27,7 +28,8 @@ Future<void> main()
       // initialRoute: '/home',
       routes: {
         '/auth': (context) => AppPage(title: 'AuthGate', body: AuthGate(authService: authService)),
-        '/': (context) => AppPage(title: 'Students', body: StudentList(authService: authService)),
+        '/': (context) => AppPage(title: 'Students', body: StudentList(authService: authService, api: api)),
+        '/student': (context) => AppPage(title: 'Student', body: StudentView(authService: authService, api: api, args: ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>)),
       },
       // home: AppPage(title: 'Students', body: StudentList()),
     ));

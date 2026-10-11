@@ -24,3 +24,21 @@ class _TitleState extends State<MainTitle> {
       style: TextStyle(fontSize: 24),));
   }
 }
+
+void goToPage(context, route){
+  if (ModalRoute.of(context)?.settings.name != route)
+    Navigator.pushNamed(context, route);
+  else
+    Navigator.pop(context);
+}
+
+Image getImage(data, type, {double width = 0, double height = 0}){
+  var url = data["image"]["versions"][type];
+  if (url != null){
+    if (width == 0)
+      return Image.network(url);
+    else
+      return Image.network(url, width: width, height: height);
+  }
+  return Image(image: AssetImage("assets/42.jpg") , width: 24, height: 24,);
+}

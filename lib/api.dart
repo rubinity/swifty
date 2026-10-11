@@ -21,46 +21,76 @@ class Api42{
   Api42({required this.authService});
 
   AuthService authService;
-  List<dynamic> students = [];
+  dynamic students = [];
+  dynamic test = [];
+  Map<String, dynamic> student = {};
   String errorStatus = "";
 
 
-  Future<void> getData() async {
-    print("getting data");
-    // Map <String, String> map;
+  Future<void> getStudents(int size) async {
+    String url = addSize('https://api.intra.42.fr/v2/campus/39/users', 20);
+    // 'https://api.intra.42.fr/v2/campus/39/users?page[size]=20'
+    students = await getData(url);//TODO error handling
+    print("we got students");
+    // print("students in api ${students.toString()}");
+  }
+  // this function is for testing urls - remove at the end
+  Future<void> getTest(int id) async {
+    // /v2/users/:id/locations_stats
+    // String url = addToUrl('https://api.intra.42.fr/v2/users', '/locations_stats', id);
+    String url = addToUrl('https://api.intra.42.fr/v2/users', '', id);
+    // String url = "https://api.intra.42.fr/v2/skills";
+    print(url);
+    test = await getData(url); //TODO error handling
+    // print("test: ");
+    // print(test.toString());
+  }
+
+  Future<Map<String, dynamic>> getStudent(int id) async {
+    String url = addToUrl('https://api.intra.42.fr/v2/users', '', id);
+    // String url = "https://api.intra.42.fr/v2/skills";
+    print(url);
+    final student = await getData(url); //TODO error handling
+    return student;
+    // print("test: ");
+    // print(test.toString());
+  }
+
+  String addToUrl(String urlStart, String urlEnd, int insert){
+    return ("$urlStart/$insert$urlEnd");
+  }
+
+//gets any data
+  Future<dynamic> getData(String urlString) async {
+    print("getting data:");
     var token = authService.getTokenData()["access_token"];
     if (token == null) {
       await authService.authorize();
       token = authService.getTokenData()["access_token"];
     }
-    // var a = token["access_token"];
-    print("token ${token}");
     Response resp = await get(
-          Uri.parse('https://api.intra.42.fr/v2/campus/39/users?page[size]=20'),
-          // 'https://api.intra.42.fr/v2/campus/39/users?page[size]=20'
-          headers: {"Authorization": "Bearer $token"});
-    // final nString = "4553etewt".substring(0, 3);
-    //
-    //     print("headers: ${resp.headers}");
-          final status = getStatus(resp.headers);
+        Uri.parse(urlString),
+        headers: {"Authorization": "Bearer $token"});
+    // print("resp ${resp.body.toString()}");
+    final status = getStatus(resp.headers);
 
-          if (status != 200) {
-            errorStatus = resp.headers["status"]!;
-          }
+    if (status != 200) {
+      errorStatus = resp.headers["status"]!;
+      print("status: ${status}");
+      print("error: ${errorStatus}");
+      return [];
+    }
 
-          print("status: ${status}");
-          students = await json.decode(resp.body);
+    print("status: ${status}");
+    dynamic data = await json.decode(resp.body);
 
-          print("we got students");
-    // HttpHeaders
-   // Response resp = await get(Uri.parse('https://jsonplaceholder.typicode.com/posts/1'));
+    print("we got data");
+    // print("data ${data.toString()}");
+    return data;
+  }
 
-   // print(students[0]);
-   // print(students.runtimeType);
-   //
-
-   // print(students[0]);
-   //  students = json.decode(content);
+  String addSize(String url, int size){
+    return ('$url?page[size]=$size');
   }
 
   int getStatus(Map<String, String> headers){
@@ -68,6 +98,10 @@ class Api42{
     int status = int.parse(statusString) ;
     return status;
   }
+
+  // Future<dynamic> getStats(id) async{
+  //
+  // }
 
   String getErrorStatus() {
     return errorStatus;

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'student.dart';
+import 'widgets.dart';
 import 'api.dart';
 import 'package:swifty/oauth.dart';
 import 'package:swifty/time.dart';
@@ -21,9 +22,9 @@ import 'package:swifty/time.dart';
 
 
 class StudentList extends StatefulWidget{
-  const StudentList({super.key, required this.authService});
+  const StudentList({super.key, required this.authService, required this.api});
   final AuthService authService;
-
+  final Api42 api;
   @override
   State<StudentList> createState() => _StudentList();
 
@@ -39,38 +40,31 @@ class _StudentList extends State<StudentList>{
   late Api42 api;
 
 
-  List<Student> dummy = [
-    Student(first_name: 'John', last_name: 'Doe'),
-    Student(first_name: 'Alice', last_name: 'Smith'),
-    Student(first_name: 'Michael', last_name: 'Brown'),
-    Student(first_name: 'Nick', last_name: 'Jones'),
-    Student(first_name: 'Jake', last_name: 'Anderson'),
-    Student(first_name: 'Anna', last_name: 'Johnson'),
-  ];
+  // List<Student> dummy = [
+  //   Student(first_name: 'John', last_name: 'Doe'),
+  //   Student(first_name: 'Alice', last_name: 'Smith'),
+  //   Student(first_name: 'Michael', last_name: 'Brown'),
+  //   Student(first_name: 'Nick', last_name: 'Jones'),
+  //   Student(first_name: 'Jake', last_name: 'Anderson'),
+  //   Student(first_name: 'Anna', last_name: 'Johnson'),
+  // ];
 
   void getList() async{
-    // Api42 api = Api42();
     try {
-      await api.getData();
+      await api.getStudents(20);
     }
     catch(e){
-      print("error:");
-      print(e);
+      print("error: $e");
       return;
     }
-    // stuList = api.students;
-
-    // students = jsonEncode(stuList);
-    // print("list: ${stuList[0]}");
     if (!mounted)
       return;
-
+    
     setState(() {
       print("setting state");
       students = api.students;
-      print(api.students[0]);
+      // print("students: ${students.toString()}");
     });
-    // print(students.toString());
   }
 
 
@@ -80,7 +74,8 @@ class _StudentList extends State<StudentList>{
     print("initiating state");
     super.initState();
     authService = widget.authService;
-    api = Api42(authService: authService);
+    api = widget.api;
+    // api = Api42(authService: authService);
     print("starting getting the list");
     getList();
 
@@ -89,12 +84,7 @@ class _StudentList extends State<StudentList>{
     // api.
   }
   
-  Image getImage(data){
-    var url = data["image"]["versions"]["micro"];
-    if (url != null)
-      return Image.network(url, width: 24, height: 24);
-    return Image(image: AssetImage("assets/42.jpg") , width: 24, height: 24,);
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -109,7 +99,7 @@ class _StudentList extends State<StudentList>{
 
         ... students.map((student)
          => GestureDetector(
-           onTap: ()=>{print(student["last_name"]),},
+           onTap: ()=>{Navigator.pushNamed(context, "/student", arguments: {'data': student, 'api': api}),},
            child: Container(
                color: Color(0xFF00babc),
                margin: EdgeInsets.all(4),
@@ -119,7 +109,7 @@ class _StudentList extends State<StudentList>{
                  children: [
                    Column(
                      children: [
-                       getImage(student)
+                       getImage(student, "micro")
                      ],
                    ),
                    Column(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:developer';
+import 'widgets.dart';
 
 
 
@@ -18,12 +19,7 @@ class AppPage extends StatelessWidget{
     // final screenWidth = MediaQuery.of(context).size.width;
     // final padWidth = screenWidth * 0.01;
     // print(["screen", screenWidth]);
-    goToPage(context, route){
-      if (ModalRoute.of(context)?.settings.name != route)
-        Navigator.pushNamed(context, route);
-      else
-        Navigator.pop(context);
-    }
+
 
 
     // TODO: implement build
