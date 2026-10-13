@@ -22,8 +22,7 @@ import 'package:swifty/time.dart';
 
 
 class StudentList extends StatefulWidget{
-  const StudentList({super.key, required this.authService, required this.api});
-  final AuthService authService;
+  const StudentList({super.key, required this.api});
   final Api42 api;
   @override
   State<StudentList> createState() => _StudentList();
@@ -36,7 +35,6 @@ class _StudentList extends State<StudentList>{
   // while no access
   var stuList;
   var students = [];
-  late AuthService authService;
   late Api42 api;
 
 
@@ -73,9 +71,7 @@ class _StudentList extends State<StudentList>{
     // TODO: implement initState
     print("initiating state");
     super.initState();
-    authService = widget.authService;
     api = widget.api;
-    // api = Api42(authService: authService);
     print("starting getting the list");
     getList();
 

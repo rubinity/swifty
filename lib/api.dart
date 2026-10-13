@@ -28,7 +28,9 @@ class Api42{
 
 
   Future<void> getStudents(int size) async {
-    String url = addSize('https://api.intra.42.fr/v2/campus/39/users', 20);
+    String url = 'https://api.intra.42.fr/v2/users?filter[last_name]=rubina';
+    // String url = addSize('https://api.intra.42.fr/v2/cursus', 20);
+    // String url = addSize('https://api.intra.42.fr/v2/users?filter[pool_year]=2026', 20);
     // 'https://api.intra.42.fr/v2/campus/39/users?page[size]=20'
     students = await getData(url);//TODO error handling
     print("we got students");
@@ -38,11 +40,13 @@ class Api42{
   Future<void> getTest(int id) async {
     // /v2/users/:id/locations_stats
     // String url = addToUrl('https://api.intra.42.fr/v2/users', '/locations_stats', id);
-    String url = addToUrl('https://api.intra.42.fr/v2/users', '', id);
-    // String url = "https://api.intra.42.fr/v2/skills";
-    print(url);
+    // String url = addToUrl('https://api.intra.42.fr/v2/cursus', '', id);
+
+    String url = "https://api.intra.42.fr/v2/cursus?page[number]=2";
+    // print(url);
     test = await getData(url); //TODO error handling
-    // print("test: ");
+    // print("test: ${test.toString()}");
+    test.forEach((entry) => {print('entry: $entry')});
     // print(test.toString());
   }
 

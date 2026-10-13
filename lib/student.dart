@@ -3,6 +3,7 @@ import 'dart:developer' as dev;
 import 'package:swifty/oauth.dart';
 import 'package:swifty/api.dart';
 import 'widgets.dart';
+import 'package:json_annotation/json_annotation.dart';
 // import 'utils.dart' as u;
 
 // class Student {
@@ -20,9 +21,8 @@ import 'widgets.dart';
 // }
 
 class StudentView extends StatefulWidget {
-  const StudentView({super.key, required this.authService, required this.api, required this.args});
+  const StudentView({super.key, required this.api, required this.args});
 
-  final AuthService authService;
   final Api42 api;
   final Map<String, dynamic> args;
   // final String location = "";
@@ -55,15 +55,17 @@ class _StudentViewState extends State<StudentView> {
   Map<String, dynamic> data = {};
   var test;
   late Api42 api;
-  late AuthService authService;
   late int id;
   late Map<String, dynamic>student = {};
+  late Map<String, dynamic>cursus42 = {};
+  late List<dynamic> skills = [];
+  late List<dynamic> projects = [];
   late String location = "";
 
   @override
   void initState() {
     // TODO: implement initState
-    authService = widget.authService;
+
     api = widget.api;
     data = widget.args["data"];
     id = data["id"];
@@ -108,18 +110,31 @@ class _StudentViewState extends State<StudentView> {
       return;
   }
 
+  Map<String, dynamic> getCursus(List<dynamic> cursuses) {
+    for (var cursus in cursuses){
+      if (cursus["cursus_id"] == 21)//TODO add error handling
+        return cursus;
+    }
+    return {};
+  }
+
   void setData() async{
     await getStudent();
     if (student.isNotEmpty) {
       int id = widget.primaryCampus(student["campus_users"]);
       if (id != 0){
         location = widget.getCampus(student["campus"], id);
-        print("loca $location");
+        cursus42 = getCursus(student["cursus_users"]);
+        skills = cursus42["skills"];
+        projects = student["projects_users"];
+        print("projects ${student["projects_users"].toString()}");
+        // print("cursus ${cursus42["skills"].toString()}");
       }
     }
-    // print("loca $location");
+   // student["projects_users"][0].forEach((key, value) => {print('$key: $value')});
+   //  projects.forEach((entry) => {print('project: ${entry["project"].toString()}')});
     setState(() {});
-    // print("loca $location");
+    // print("loca ${student["cursus_users"]}");
   }
   
   // ModalRoute.of(context)?.settings.name
@@ -137,44 +152,157 @@ class _StudentViewState extends State<StudentView> {
 
     // debugPrint(student.toString(), wrapWidth: 1000);
     // debugPrint(data.toString(), wrapWidth: 1000);r
-    return Column(
-      // mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      // spacing: 1,
-      // mainAxisSize: MainAxisSize.max,
-      children: [
-        SizedBox(height: 10),
-        Center(
-          child: getImage(data, "small"),
-        ),
-        Text(data["displayname"],
-        textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 20,
-            fontFamily:  "futura-pt",
-            fontFamilyFallback:['Noto Sans', 'Arial', 'Helvetica', 'Sans serif'],
-            color: Color(0xFFB9DCDC),
-            // backgroundColor: Colors.black38,
-            fontWeight: FontWeight.bold,
-            shadows: [Shadow(color: Colors.black, blurRadius: 6)],
+    return SingleChildScrollView(
+      child: Column(
+        // mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        // spacing: 1,
+        // mainAxisSize: MainAxisSize.max,
+        children: [
+          SizedBox(height: 10),
+          Center(
+            child: getImage(data, "small"),
           ),
+
+              Center(child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 0.1),
+                  margin: EdgeInsets.fromLTRB(0, 5, 0, 0),
+                  // decoration: ShapeDecoration(shape:
+                  // RoundedRectangleBorder(
+                  //   borderRadius: BorderRadius.circular(5),
+                  // ),
+                  //     color: Color(0xFF00babc)),
+                  child:
+                  Text("${student["displayname"]}", style:  TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold))
+                  // OutlinedText(text: '${student["displayname"]} ', font: 20)
+                )),
+          Align(
+            alignment: Alignment(-0.85, 0),
+            // widthFactor: 10,
+            child: Container(
+              padding: EdgeInsets.fromLTRB(4, 2, 4, 1),
+              margin: EdgeInsets.fromLTRB(0, 0, 0, 0),
+              decoration: ShapeDecoration(shape:
+              RoundedRectangleBorder(
+                  borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
+                // borderRadius: BorderRadius.circular(16),
+                side: BorderSide(color: Color(0xFF00babc), width: 5, strokeAlign: BorderSide.strokeAlignInside)
+                  ),
+                  color: Colors.black54),
+              // color: Colors.black54,
+              child: Text("${student["login"]}", style:  TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold))
+              // OutlinedText(text: student["login"], font: 16, fontWeight: FontWeight.normal,),
+            ),
+          ),
+
+          // Card(child: Text("${data["login"]}", style:  TextStyle(color: Colors.white)),),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: ShapeDecoration(shape:
+            RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(color: Color(0xFF00babc), width: 4)
+            ),
+              color: Colors.black54,),
+            margin: EdgeInsets.fromLTRB(10, 0, 10, 0),
+            // color: Colors.black,
+            child: Column(children: [
+              // Text(data["login"],
+              //     textAlign: TextAlign.center, style: TextStyle(fontSize: 16,
+              //       // color:  Color(0xFFB9DCDC),
+              //       color: Colors.white,
+              //       shadows: [Shadow(color: Colors.black, blurRadius: 2)],
+              //       // backgroundColor: Colors.white
+              //     )),
+              Row(children: [
+                Icon(Icons.login_rounded, color: Colors.white),
+                SizedBox(width: 4,),
+                Text("${data["login"]}", style:  TextStyle(color: Colors.white)),
+              ],),
+              Row(children: [
+                Icon(Icons.email_outlined, color: Colors.white),
+                SizedBox(width: 4,),
+                Text("${data["email"]}", style:  TextStyle(color: Colors.white)),
+              ],),
+            Row(
+              children: [
+                Icon(Icons.location_city_sharp, color: Colors.white, size: 20,),
+                SizedBox(width: 4,),
+                Text('campus: $location', style:  TextStyle(color: Colors.white)),
+              ]
+            ),
+            Row(
+              children: [
+                Icon(Icons.wallet_outlined, color: Colors.white),
+                SizedBox(width: 4,),
+                Text('wallet: ${student["wallet"].toString()}', style:  TextStyle(color: Colors.white)),
+              ],
+            ),
+              Row(
+                children: [
+                  Icon(Icons.start, color: Colors.white),
+                  SizedBox(width: 4,),
+                  Text('Pool year: ${student["pool_year"].toString()}', style:  TextStyle(color: Colors.white)),
+                ],
+              ),
+              Row(
+                children: [
+                  Icon(Icons.arrow_circle_up_outlined, color: Colors.white),
+                  SizedBox(width: 4,),
+                  Text('level: ${cursus42["level"].toString()}', style:  TextStyle(color: Colors.white)),
+                ],
+              ),
+            // Text(data["Campus"])
+      
+          ]
+      
+          ),),
+          SizedBox(height: 4,),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: ShapeDecoration(shape:
+            RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(color: Color(0xFF00babc), width: 5)),
+              color: Colors.white,),
+            margin: EdgeInsets.fromLTRB(10, 0, 10, 0),
+            // color: Colors.black,
+            child: ListView(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              children: [
+                Center(child: Text("Skills", style: TextStyle(color: Colors.black))),
+             ... skills.map(
+                 (skill)=> Text("${skill["name"]}: ${skill["level"]}", style: TextStyle(color: Colors.black))
+             )
+              ],
+      
+            )
+          ),
+          SizedBox(height: 4,),
+          Container(
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: ShapeDecoration(shape:
+              RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(color: Color(0xFF00babc), width: 5)),
+                color: Colors.white,),
+              margin: EdgeInsets.fromLTRB(10, 0, 10, 0),
+              // color: Colors.black,
+              child: ListView(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                children: [
+                  Center(child: Text("Projects", style: TextStyle(color: Colors.black))),
+                  ... projects.map(
+                          (project)=> Text("${project["project"]["name"]}", style: TextStyle(color: Colors.black))
+                  )
+                ],
+
+              )
+          ),
+        ],
       ),
-      Text(data["login"],
-          textAlign: TextAlign.center, style: TextStyle(fontSize: 16,
-            // color:  Color(0xFFB9DCDC),
-            color: Colors.white,
-            shadows: [Shadow(color: Colors.black, blurRadius: 2)],
-      // backgroundColor: Colors.white
-          )),
-        Container(child: Column(children: [
-          Text(data["email"]),
-          Text(location),
-          // Text(data["Campus"])
-
-        ]
-
-        ),),
-
-      ],
     );
   }
 }

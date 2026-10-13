@@ -28,8 +28,8 @@ Future<void> main()
       // initialRoute: '/home',
       routes: {
         '/auth': (context) => AppPage(title: 'AuthGate', body: AuthGate(authService: authService)),
-        '/': (context) => AppPage(title: 'Students', body: StudentList(authService: authService, api: api)),
-        '/student': (context) => AppPage(title: 'Student', body: StudentView(authService: authService, api: api, args: ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>)),
+        '/': (context) => AppPage(title: 'Students', body: StudentList(api: api)),
+        '/student': (context) => AppPage(title: 'Student', body: StudentView(api: api, args: ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>)),
       },
       // home: AppPage(title: 'Students', body: StudentList()),
     ));
