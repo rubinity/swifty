@@ -28,6 +28,22 @@ class StudentView extends StatefulWidget {
   // final String location = "";
   // String data;
 
+  @override
+  State<StudentView> createState() => _StudentViewState();
+}
+
+class _StudentViewState extends State<StudentView> {
+  // Object? data = {};
+  Map<String, dynamic> data = {};
+  var test;
+  late Api42 api;
+  late int id;
+  late Map<String, dynamic>student = {};
+  late Map<String, dynamic>cursus42 = {};
+  late List<dynamic> skills = [];
+  late List<dynamic> projects = [];
+  late String location = "";
+
   int primaryCampus(List<dynamic> campuses){
     for (var campus in campuses){
       // print("pr ${campus["is_primary"]}");
@@ -46,21 +62,7 @@ class StudentView extends StatefulWidget {
     return "";
   }
 
-  @override
-  State<StudentView> createState() => _StudentViewState();
-}
 
-class _StudentViewState extends State<StudentView> {
-  // Object? data = {};
-  Map<String, dynamic> data = {};
-  var test;
-  late Api42 api;
-  late int id;
-  late Map<String, dynamic>student = {};
-  late Map<String, dynamic>cursus42 = {};
-  late List<dynamic> skills = [];
-  late List<dynamic> projects = [];
-  late String location = "";
 
   @override
   void initState() {
@@ -69,6 +71,7 @@ class _StudentViewState extends State<StudentView> {
     api = widget.api;
     data = widget.args["data"];
     id = data["id"];
+    student = widget.args["data"];
     setData();
     // getTest();
 
@@ -97,18 +100,18 @@ class _StudentViewState extends State<StudentView> {
     });
   }
 
-  Future<void> getStudent() async {
-    try {
-      student = await api.getStudent(id);
-    }
-    catch(e){
-      print("error in student: $e");
-      return;
-    }
-
-    if (!mounted)
-      return;
-  }
+  // Future<void> getStudent() async {
+  //   try {
+  //     student = await api.getStudent(id);
+  //   }
+  //   catch(e){
+  //     print("error in student: $e");
+  //     return;
+  //   }
+  //
+  //   if (!mounted)
+  //     return;
+  // }
 
   Map<String, dynamic> getCursus(List<dynamic> cursuses) {
     for (var cursus in cursuses){
@@ -119,11 +122,12 @@ class _StudentViewState extends State<StudentView> {
   }
 
   void setData() async{
-    await getStudent();
+    // await getStudent();
+    // print("student ${data.toString()}");
     if (student.isNotEmpty) {
-      int id = widget.primaryCampus(student["campus_users"]);
+      int id = primaryCampus(student["campus_users"]);
       if (id != 0){
-        location = widget.getCampus(student["campus"], id);
+        location = getCampus(student["campus"], id);
         cursus42 = getCursus(student["cursus_users"]);
         skills = cursus42["skills"];
         projects = student["projects_users"];
@@ -180,18 +184,29 @@ class _StudentViewState extends State<StudentView> {
             alignment: Alignment(-0.85, 0),
             // widthFactor: 10,
             child: Container(
-              padding: EdgeInsets.fromLTRB(4, 2, 4, 1),
-              margin: EdgeInsets.fromLTRB(0, 0, 0, 0),
+              // color: Color(0xFF00babc),
+              padding: EdgeInsets.fromLTRB(7, 6, 7, 0),
               decoration: ShapeDecoration(shape:
               RoundedRectangleBorder(
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
-                // borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: Color(0xFF00babc), width: 5, strokeAlign: BorderSide.strokeAlignInside)
-                  ),
-                  color: Colors.black54),
-              // color: Colors.black54,
-              child: Text("${student["login"]}", style:  TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold))
-              // OutlinedText(text: student["login"], font: 16, fontWeight: FontWeight.normal,),
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(7), topRight: Radius.circular(7)),
+              ),
+                  color: Color(0xFF00babc)
+                ),
+              child: Container(
+                padding: EdgeInsets.fromLTRB(4, 2, 4, 2),
+                // margin: EdgeInsets.fromLTRB(0, 0, 0, 1),
+                decoration: ShapeDecoration(shape:
+                RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5), bottomLeft: Radius.circular(4), bottomRight: Radius.circular(4)),
+                  // borderRadius: BorderRadius.circular(5),
+                  // side: BorderSide(color: Color(0xFF00babc), width: 5, strokeAlign: BorderSide.strokeAlignInside)
+                    ),
+                    color: Colors.grey.shade800),
+                // color: Colors.black54,
+                child: Text("${student["login"]}", style:  TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, height:1.0 ))
+                // OutlinedText(text: student["login"], font: 16, fontWeight: FontWeight.normal,),
+              ),
+
             ),
           ),
 
@@ -203,7 +218,7 @@ class _StudentViewState extends State<StudentView> {
                 borderRadius: BorderRadius.circular(16),
                 side: BorderSide(color: Color(0xFF00babc), width: 4)
             ),
-              color: Colors.black54,),
+              color: Colors.grey.shade800,),
             margin: EdgeInsets.fromLTRB(10, 0, 10, 0),
             // color: Colors.black,
             child: Column(children: [
@@ -214,11 +229,7 @@ class _StudentViewState extends State<StudentView> {
               //       shadows: [Shadow(color: Colors.black, blurRadius: 2)],
               //       // backgroundColor: Colors.white
               //     )),
-              Row(children: [
-                Icon(Icons.login_rounded, color: Colors.white),
-                SizedBox(width: 4,),
-                Text("${data["login"]}", style:  TextStyle(color: Colors.white)),
-              ],),
+
               Row(children: [
                 Icon(Icons.email_outlined, color: Colors.white),
                 SizedBox(width: 4,),

@@ -35,7 +35,26 @@ class _StudentList extends State<StudentList>{
   // while no access
   var stuList;
   var students = [];
+  Map<String, dynamic> curStudent = {};
   late Api42 api;
+
+  Future<void> getStudent(int id) async {
+    try {
+      curStudent = await api.getStudent(id);
+    }
+    catch(e){
+      print("error in student: $e");
+      return;
+    }
+
+    if (!mounted)
+      return;
+  }
+  
+  void openStudent(int id) async{
+    await getStudent(id);
+    Navigator.pushNamed(context, "/student", arguments: {'data': curStudent , 'api': api});
+  }
 
 
   // List<Student> dummy = [
@@ -95,7 +114,7 @@ class _StudentList extends State<StudentList>{
 
         ... students.map((student)
          => GestureDetector(
-           onTap: ()=>{Navigator.pushNamed(context, "/student", arguments: {'data': student, 'api': api}),},
+           onTap: ()=>{openStudent(student["id"]),},
            child: Container(
                color: Color(0xFF00babc),
                margin: EdgeInsets.all(4),

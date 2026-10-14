@@ -29,10 +29,10 @@ class Api42{
 
 
   Future<void> getStudents(int size) async {
-    String url = 'https://api.intra.42.fr/v2/users?filter[last_name]=rubina';
+    // String url = 'https://api.intra.42.fr/v2/users?filter[last_name]=rubina';
     // String url = addSize('https://api.intra.42.fr/v2/cursus', 20);
     // String url = addSize('https://api.intra.42.fr/v2/users?filter[pool_year]=2026', 20);
-    // 'https://api.intra.42.fr/v2/campus/39/users?page[size]=20'
+    String url = 'https://api.intra.42.fr/v2/campus/39/users?page[size]=20';
     students = await getData(url);//TODO error handling
     print("we got students");
     // print("students in api ${students.toString()}");
@@ -109,9 +109,11 @@ class Api42{
   //
   // }
     Image getImage(data, type, {double width = 0, double height = 0}){
+    // print("type: $type");
+    // print("type: : ${data["image"]["versions"]}");
     var url = data["image"]["versions"][type];
     if (url != null){
-      print("test image");
+      // print("test image");
     return getNetImage(url, width: width, height:height );
 
     }
