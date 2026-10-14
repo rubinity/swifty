@@ -161,7 +161,7 @@ class _StudentViewState extends State<StudentView> {
         children: [
           SizedBox(height: 10),
           Center(
-            child: getImage(data, "small"),
+            child: api.getImage(data, "small"),
           ),
 
               Center(child: Container(

@@ -105,7 +105,7 @@ class _StudentList extends State<StudentList>{
                  children: [
                    Column(
                      children: [
-                       getImage(student, "micro")
+                       api.getImage(student, "micro")
                      ],
                    ),
                    Column(

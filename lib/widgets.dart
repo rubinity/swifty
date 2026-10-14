@@ -71,13 +71,22 @@ void goToPage(context, route){
     Navigator.pop(context);
 }
 
-Image getImage(data, type, {double width = 0, double height = 0}){
-  var url = data["image"]["versions"][type];
-  if (url != null){
-    if (width == 0)
-      return Image.network(url);
-    else
-      return Image.network(url, width: width, height: height);
-  }
-  return Image(image: AssetImage("assets/42.jpg") , width: 24, height: 24,);
-}
+// Image getImage(data, type, {double width = 0, double height = 0}){
+//   print("fxing image");
+//   print(data["image"]["versions"]);
+//   var url = data["image"]["versions"][type];
+//   print(url);
+//   if (url != null){
+//     try {
+//       if (width == 0)
+//       return Image.network(url);
+//     else
+//       return Image.network(url, width: width, height: height);
+//   }
+//     catch (e){
+//       print(e.toString());
+//
+//   }}
+//     return Image(image: AssetImage("assets/42.jpg") , width: 24, height: 24,);
+
+// }

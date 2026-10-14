@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/material.dart';
 
 // Future<Map<String, dynamic>> loadJson() async {
 //   final text = await rootBundle.loadString('assets/test.json');
@@ -63,8 +64,9 @@ class Api42{
   String addToUrl(String urlStart, String urlEnd, int insert){
     return ("$urlStart/$insert$urlEnd");
   }
-
+// getActual
 //gets any data
+//   Todo: ensure token is active
   Future<dynamic> getData(String urlString) async {
     print("getting data:");
     var token = authService.getTokenData()["access_token"];
@@ -106,8 +108,30 @@ class Api42{
   // Future<dynamic> getStats(id) async{
   //
   // }
+    Image getImage(data, type, {double width = 0, double height = 0}){
+    var url = data["image"]["versions"][type];
+    if (url != null){
+      print("test image");
+    return getNetImage(url, width: width, height:height );
 
-  String getErrorStatus() {
+    }
+    return Image(image: AssetImage("assets/42.jpg") , width: 24, height: 24,);
+    }
+
+  Image getNetImage(String url, {double width = 0, double height = 0}){
+    var token = authService.getTokenData()["access_token"];
+    Image image;
+    if (width == 0){
+      image = Image.network(url, headers: {"Authorization": "Bearer $token"});
+      // print()
+    }
+    else {
+    image = Image.network(url, headers: {"Authorization": "Bearer $token"}, width: width, height: height,);}
+    return image;
+  }
+
+
+String getErrorStatus() {
     return errorStatus;
   }
 }
