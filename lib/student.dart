@@ -129,7 +129,10 @@ class _StudentViewState extends State<StudentView> {
       if (id != 0){
         location = getCampus(student["campus"], id);
         cursus42 = getCursus(student["cursus_users"]);
-        skills = cursus42["skills"];
+        print("skills ${cursus42["skills"]}");
+        if (cursus42["skills"] != null) {
+          skills = cursus42["skills"];
+        }
         projects = student["projects_users"];
         print("projects ${student["projects_users"].toString()}");
         // print("cursus ${cursus42["skills"].toString()}");
