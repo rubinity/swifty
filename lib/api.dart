@@ -117,14 +117,14 @@ class Api42{
     return getNetImage(url, width: width, height:height );
 
     }
-    return Image(image: AssetImage("assets/42.jpg") , width: 24, height: 24,);
+    return Image(image: AssetImage("assets/42.jpg") , width: 25, height: 25,);
     }
 
   Image getNetImage(String url, {double width = 0, double height = 0}){
     var token = authService.getTokenData()["access_token"];
     Image image;
     if (width == 0){
-      image = Image.network(url, headers: {"Authorization": "Bearer $token"});
+      image = Image.network(url, headers: {"Authorization": "Bearer $token"}) ;
       // print()
     }
     else {

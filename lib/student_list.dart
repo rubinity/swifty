@@ -108,34 +108,57 @@ class _StudentList extends State<StudentList>{
     // final padWidth = screenWidth * 0.01;
     // print(["screen1", screenWidth]);
     return (
-     ListView(
-    padding: EdgeInsets.symmetric(vertical: 4, horizontal: 2),
-     children: [
+     ListView.builder(
+       itemCount: students.length,
+         itemBuilder: (context, index) {
+           final textTheme = Theme.of(context).textTheme;
+         return (Card(margin: EdgeInsets.fromLTRB(4, 4, 4, 4),
+             child: ListTile(
+           // dense: true,
+           leading: api.getImage(students[index], "micro"),
+           title: Text(students[index]["login"]),
+           // subtitle: Text(students[index]["login"]),
+           titleTextStyle: textTheme.titleMedium?.copyWith(fontSize: 16, height: 1.0, fontWeight:  FontWeight.bold),
+           // subtitleTextStyle: textTheme.bodyMedium?.copyWith(height: 1.1),
+           onTap: ()=>{openStudent(students[index]["id"]),},
+           minTileHeight: 28,
+           minVerticalPadding: 2,
+           tileColor: Color(0xFF00babc),
 
-        ... students.map((student)
-         => GestureDetector(
-           onTap: ()=>{openStudent(student["id"]),},
-           child: Container(
-               color: Color(0xFF00babc),
-               margin: EdgeInsets.all(4),
-               padding: EdgeInsets.fromLTRB(12, 2, 12, 2),
-           //     // constraints: BoxConstraints.loose(Size.fromHeight(100)) ,
-               child: Row(
-                 children: [
-                   Column(
-                     children: [
-                       api.getImage(student, "micro")
-                     ],
-                   ),
-                   Column(
-                     children: [
-                   Row(
-                     children: [
-                       SizedBox(width: 10),
-                       Text(overflow: null, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold), textAlign: TextAlign.start, student["login"]
-                       ),
-                     ],
-                   ),
+           // contentPadding: EdgeInsets.all(1),
+
+         )
+
+              ));
+
+         }));
+    // padding: EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+    //  children: [
+    //
+    //     ... students.map((student)
+    //      => GestureDetector(
+    //        onTap: ()=>{openStudent(student["id"]),},
+    //        child: Container(
+    //            color: Color(0xFF00babc),
+    //            margin: EdgeInsets.all(4),
+    //            padding: EdgeInsets.fromLTRB(12, 2, 12, 2),
+    //        //     // constraints: BoxConstraints.loose(Size.fromHeight(100)) ,
+    //            child: Row(
+    //              children: [
+    //                Column(
+    //                  children: [
+    //                    api.getImage(student, "micro")
+    //                  ],
+    //                ),
+    //                Column(
+    //                  children: [
+    //                Row(
+    //                  children: [
+    //                    SizedBox(width: 10),
+    //                    Text(overflow: null, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold), textAlign: TextAlign.start, student["login"]
+    //                    ),
+    //                  ],
+    //                ),
                    // Row(
                    //   mainAxisAlignment: MainAxisAlignment.start,
                    //   children: [
@@ -144,18 +167,18 @@ class _StudentList extends State<StudentList>{
                    //     ),
                    //   ],
                    // ),
-                     ]
-                   )
-                 ],
-               )
-           ),
-         )
-         ),
-       ],
-     )
+     //                 ]
+     //               )
+     //             ],
+     //           )
+     //       ),
+     //     )
+     //     ),
+     //   ],
+     // )
 
 
-    );
+    // );
   }
 
 }
