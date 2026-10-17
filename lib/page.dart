@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:developer';
+import 'student_list.dart';
 import 'widgets.dart';
 
 
@@ -84,6 +85,7 @@ class AppPage extends StatelessWidget{
             onTap: () => {goToPage(context, "/auth")},
             // shape: Border(bottom: BorderSide())
           ),
+
           ListTile(
             leading: Icon(Icons.home),
             title: Text("Home"),

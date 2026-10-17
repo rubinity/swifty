@@ -56,16 +56,6 @@ class _StudentList extends State<StudentList>{
     Navigator.pushNamed(context, "/student", arguments: {'data': curStudent , 'api': api});
   }
 
-
-  // List<Student> dummy = [
-  //   Student(first_name: 'John', last_name: 'Doe'),
-  //   Student(first_name: 'Alice', last_name: 'Smith'),
-  //   Student(first_name: 'Michael', last_name: 'Brown'),
-  //   Student(first_name: 'Nick', last_name: 'Jones'),
-  //   Student(first_name: 'Jake', last_name: 'Anderson'),
-  //   Student(first_name: 'Anna', last_name: 'Johnson'),
-  // ];
-
   void getList() async{
     try {
       await api.getStudents(20);
@@ -108,29 +98,43 @@ class _StudentList extends State<StudentList>{
     // final padWidth = screenWidth * 0.01;
     // print(["screen1", screenWidth]);
     return (
+
      ListView.builder(
-       itemCount: students.length,
+       controller: ScrollController(),
+       itemCount: students.length + 1,
          itemBuilder: (context, index) {
            final textTheme = Theme.of(context).textTheme;
-         return (Card(margin: EdgeInsets.fromLTRB(4, 4, 4, 4),
-             child: ListTile(
-           // dense: true,
-           leading: api.getImage(students[index], "micro"),
-           title: Text(students[index]["login"]),
-           // subtitle: Text(students[index]["login"]),
-           titleTextStyle: textTheme.titleMedium?.copyWith(fontSize: 16, height: 1.0, fontWeight:  FontWeight.bold),
-           // subtitleTextStyle: textTheme.bodyMedium?.copyWith(height: 1.1),
-           onTap: ()=>{openStudent(students[index]["id"]),},
-           minTileHeight: 28,
-           minVerticalPadding: 2,
-           tileColor: Color(0xFF00babc),
+         if (index == 0)
+           {
+             return ListTile(
+               leading: Icon(Icons.refresh_outlined),
+               // title: Text("Home"),
+               onTap: () {
+                   getList();
+               },
+               minTileHeight: 10,
+             );
+           }
+         else {
+           return (Card(margin: EdgeInsets.fromLTRB(4, 4, 4, 4),
+               child: ListTile(
+                 // dense: true,
+                 leading: api.getImage(students[index - 1], "micro"),
+                 title: Text(students[index - 1]["login"]),
+                 // subtitle: Text(students[index]["login"]),
+                 titleTextStyle: textTheme.titleMedium?.copyWith(
+                     fontSize: 16, height: 1.0, fontWeight: FontWeight.bold),
+                 // subtitleTextStyle: textTheme.bodyMedium?.copyWith(height: 1.1),
+                 onTap: () => {openStudent(students[index - 1]["id"]),},
+                 minTileHeight: 28,
+                 minVerticalPadding: 2,
+                 tileColor: Color(0xFF00babc),
 
-           // contentPadding: EdgeInsets.all(1),
+                 // contentPadding: EdgeInsets.all(1),
 
-         )
+               )
 
-              ));
-
+           ));}
          }));
     // padding: EdgeInsets.symmetric(vertical: 4, horizontal: 2),
     //  children: [

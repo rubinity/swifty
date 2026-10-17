@@ -27,12 +27,43 @@ class Api42{
   Map<String, dynamic> student = {};
   String errorStatus = "";
 
-
+  String buildUrl(String url, Map<String, String> filter){
+    if (filter.isEmpty)
+      return url;
+    String output = "$url?";
+    filter.forEach( (param, value){
+      if (param == "page")
+        output = "${output}page=$value";
+      else if (param == "per_page")
+        output = "${output}&per_page=$value";
+      else if (param.substring(0, 6) == "range_")//change for different ranges using regex
+        output = "${output}&range[${param.substring(6)}]=${value},${value}zzzzzzzzz";
+      else
+        output = "${output}&filter[$param]=$value";
+    });
+      return output;
+  }
+  // range for the following users params
+  // id
+  // login
+  // email
+  // created_at
+  // updated_at
+  // pool_year
+  // pool_month
+  // kind
+  // status
   Future<void> getStudents(int size) async {
     // String url = 'https://api.intra.42.fr/v2/users?filter[last_name]=rubina';
     // String url = addSize('https://api.intra.42.fr/v2/cursus', 20);
+    // String url = addSize('https://api.intra.42.fr/v2/campus/39/users', 20);
+    //
     // String url = addSize('https://api.intra.42.fr/v2/users?filter[pool_year]=2026', 20);
-    String url = 'https://api.intra.42.fr/v2/campus/39/users?page[size]=20';
+    // print("url $url");
+    String url = buildUrl("https://api.intra.42.fr/v2/campus/39/users", {"page": "3", "per_page" : "20", "pool_year": "2022", "pool_month" : "june"});
+    // String url = buildUrl("https://api.intra.42.fr/v2/campus/39/users", {"page": "1", "per_page" : "20", "range_login": "mru"});
+    print("url $url");
+    // String url = 'https://api.intra.42.fr/v2/campus/39/users?page=2&per_page=5&filter[pool_year]=2022';
     students = await getData(url);//TODO error handling
     print("we got students");
     // print("students in api ${students.toString()}");
@@ -70,7 +101,7 @@ class Api42{
   Future<dynamic> getData(String urlString) async {
     print("getting data:");
     var token = authService.getTokenData()["access_token"];
-    if (token == null) {
+    if (token == null || authService.tokenExpired(authService.tokenData)) {
       await authService.authorize();
       token = authService.getTokenData()["access_token"];
     }
@@ -84,12 +115,14 @@ class Api42{
       errorStatus = resp.headers["status"]!;
       print("status: ${status}");
       print("error: ${errorStatus}");
+      if (status == 401)
+
       return [];
     }
 
     print("status: ${status}");
     dynamic data = await json.decode(resp.body);
-
+    print("headers: ${resp.headers["link"]}");
     print("we got data");
     // print("data ${data.toString()}");
     return data;

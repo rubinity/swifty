@@ -127,6 +127,9 @@ class AuthService {
     print("authorized");
 
   }
+  // bool tokenExpired(){
+  //   return true;
+  // }
 
   bool getAuthorized()
   {
