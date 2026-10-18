@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/material.dart';
+import 'package:swifty/utils.dart';
 
 // Future<Map<String, dynamic>> loadJson() async {
 //   final text = await rootBundle.loadString('assets/test.json');
@@ -23,6 +24,7 @@ class Api42{
 
   AuthService authService;
   dynamic students = [];
+  Map<String,String> links = {};
   dynamic test = [];
   Map<String, dynamic> student = {};
   String errorStatus = "";
@@ -53,19 +55,28 @@ class Api42{
   // pool_month
   // kind
   // status
-  Future<void> getStudents(int size) async {
+  Future<List<dynamic>> getStudents(String type, { Map<String, String> params = const {} }) async {
+    String url;
+    if (type == "current")
+      url = "https://api.intra.42.fr/v2/campus/39/users";
+    else {
+      url = links[type]!;
+    }
     // String url = 'https://api.intra.42.fr/v2/users?filter[last_name]=rubina';
     // String url = addSize('https://api.intra.42.fr/v2/cursus', 20);
     // String url = addSize('https://api.intra.42.fr/v2/campus/39/users', 20);
     //
     // String url = addSize('https://api.intra.42.fr/v2/users?filter[pool_year]=2026', 20);
     // print("url $url");
-    String url = buildUrl("https://api.intra.42.fr/v2/campus/39/users", {"page": "3", "per_page" : "20", "pool_year": "2022", "pool_month" : "june"});
+    if (params != {})
+      url = buildUrl(url, params);
     // String url = buildUrl("https://api.intra.42.fr/v2/campus/39/users", {"page": "1", "per_page" : "20", "range_login": "mru"});
     print("url $url");
     // String url = 'https://api.intra.42.fr/v2/campus/39/users?page=2&per_page=5&filter[pool_year]=2022';
-    students = await getData(url);//TODO error handling
+
     print("we got students");
+    List<dynamic> students = await getData(url);//TODO error handling
+    return students;
     // print("students in api ${students.toString()}");
   }
   // this function is for testing urls - remove at the end
@@ -86,7 +97,7 @@ class Api42{
     String url = addToUrl('https://api.intra.42.fr/v2/users', '', id);
     // String url = "https://api.intra.42.fr/v2/skills";
     print(url);
-    final student = await getData(url); //TODO error handling
+    final student = (await getData(url))[0]; //TODO error handling
     return student;
     // print("test: ");
     // print(test.toString());
@@ -98,7 +109,8 @@ class Api42{
 // getActual
 //gets any data
 //   Todo: ensure token is active
-  Future<dynamic> getData(String urlString) async {
+  Future<List<dynamic>> getData(String urlString) async {
+    String? link = "";
     print("getting data:");
     var token = authService.getTokenData()["access_token"];
     if (token == null || authService.tokenExpired(authService.tokenData)) {
@@ -122,7 +134,13 @@ class Api42{
 
     print("status: ${status}");
     dynamic data = await json.decode(resp.body);
-    print("headers: ${resp.headers["link"]}");
+    link = resp.headers["link"];
+    if (link != null) {
+      links = parseHeaders(link);
+      print("links: $links");
+    }
+
+    // print("headers: ${resp.headers["link"]}");
     print("we got data");
     // print("data ${data.toString()}");
     return data;

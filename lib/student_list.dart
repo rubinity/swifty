@@ -31,10 +31,8 @@ class StudentList extends StatefulWidget{
 
 class _StudentList extends State<StudentList>{
 
-  // Api42 api;
-  // while no access
-  var stuList;
-  var students = [];
+  List<dynamic> students = [];
+  Map<String, String> links = {};
   Map<String, dynamic> curStudent = {};
   late Api42 api;
 
@@ -58,7 +56,8 @@ class _StudentList extends State<StudentList>{
 
   void getList() async{
     try {
-      await api.getStudents(20);
+      var params = {"page": "3", "per_page" : "20", "pool_year": "2022", "pool_month" : "june"};
+      students = (await api.getStudents("current", params: params));//later it might be better to use a variable instead of current
     }
     catch(e){
       print("error: $e");
@@ -69,7 +68,7 @@ class _StudentList extends State<StudentList>{
     
     setState(() {
       print("setting state");
-      students = api.students;
+      // students = api.students;
       // print("students: ${students.toString()}");
     });
   }
