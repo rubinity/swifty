@@ -59,8 +59,12 @@ class Api42{
     String url;
     if (type == "current")
       url = "https://api.intra.42.fr/v2/campus/39/users";
-    else {
+    else if (links[type] != null) {
       url = links[type]!;
+    }
+    else {
+      throw Exception("no_scroll");
+      return [];
     }
     // String url = 'https://api.intra.42.fr/v2/users?filter[last_name]=rubina';
     // String url = addSize('https://api.intra.42.fr/v2/cursus', 20);
@@ -97,7 +101,7 @@ class Api42{
     String url = addToUrl('https://api.intra.42.fr/v2/users', '', id);
     // String url = "https://api.intra.42.fr/v2/skills";
     print(url);
-    final student = (await getData(url))[0]; //TODO error handling
+    final student = await getData(url); //TODO error handling
     return student;
     // print("test: ");
     // print(test.toString());
@@ -109,7 +113,7 @@ class Api42{
 // getActual
 //gets any data
 //   Todo: ensure token is active
-  Future<List<dynamic>> getData(String urlString) async {
+  Future<dynamic> getData(String urlString) async {
     String? link = "";
     print("getting data:");
     var token = authService.getTokenData()["access_token"];
