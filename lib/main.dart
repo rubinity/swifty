@@ -3,14 +3,16 @@ import 'package:swifty/authgate.dart';
 import 'package:swifty/oauth.dart';
 // import 'package:flutter/services.dart';
 import 'api.dart';
-import 'widgets.dart' as w;
+import 'utils/widgets.dart' as w;
 import 'page.dart';
 import 'student_list.dart';
 import 'student.dart';
 import 'authgate.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 late final String appPath;
+enum customColors{ blue, black}
 
 Future<void> main()
     async {

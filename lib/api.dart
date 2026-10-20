@@ -4,7 +4,9 @@ import 'dart:convert';
 import 'package:http/http.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/material.dart';
-import 'package:swifty/utils.dart';
+import 'package:swifty/utils/utils.dart';
+import 'package:swifty/utils/urls.dart';
+import 'package:swifty/utils/network.dart';
 
 // Future<Map<String, dynamic>> loadJson() async {
 //   final text = await rootBundle.loadString('assets/test.json');
@@ -29,22 +31,6 @@ class Api42{
   Map<String, dynamic> student = {};
   String errorStatus = "";
 
-  String buildUrl(String url, Map<String, String> filter){
-    if (filter.isEmpty)
-      return url;
-    String output = "$url?";
-    filter.forEach( (param, value){
-      if (param == "page")
-        output = "${output}page=$value";
-      else if (param == "per_page")
-        output = "${output}&per_page=$value";
-      else if (param.substring(0, 6) == "range_")//change for different ranges using regex
-        output = "${output}&range[${param.substring(6)}]=${value},${value}zzzzzzzzz";
-      else
-        output = "${output}&filter[$param]=$value";
-    });
-      return output;
-  }
   // range for the following users params
   // id
   // login
@@ -55,34 +41,34 @@ class Api42{
   // pool_month
   // kind
   // status
-  Future<List<dynamic>> getStudents(String type, { Map<String, String> params = const {} }) async {
-    String url;
-    if (type == "current")
-      url = "https://api.intra.42.fr/v2/campus/39/users";
+  Future<List<dynamic>> getStudents(String type, int campusId, { Map<String, String> params = const {} }) async {
+    String url = "https://api.intra.42.fr/v2/users";
+    if (type == "current") {
+      if (campusId != -1)
+        url = "https://api.intra.42.fr/v2/campus/${campusId.toString()}/users";
+      if (params != {})
+        url = buildUrl(url, params);
+    }
     else if (links[type] != null) {
       url = links[type]!;
     }
     else {
       throw Exception("no_scroll");
-      return [];
     }
-    // String url = 'https://api.intra.42.fr/v2/users?filter[last_name]=rubina';
-    // String url = addSize('https://api.intra.42.fr/v2/cursus', 20);
-    // String url = addSize('https://api.intra.42.fr/v2/campus/39/users', 20);
-    //
-    // String url = addSize('https://api.intra.42.fr/v2/users?filter[pool_year]=2026', 20);
-    // print("url $url");
-    if (params != {})
-      url = buildUrl(url, params);
-    // String url = buildUrl("https://api.intra.42.fr/v2/campus/39/users", {"page": "1", "per_page" : "20", "range_login": "mru"});
-    print("url $url");
-    // String url = 'https://api.intra.42.fr/v2/campus/39/users?page=2&per_page=5&filter[pool_year]=2022';
 
+    print("url $url");
     print("we got students");
-    List<dynamic> students = await getData(url);//TODO error handling
+    List<dynamic> students = await getData(url, true);//TODO error handling
     return students;
     // print("students in api ${students.toString()}");
   }
+
+  Future<List<dynamic>> getCampuses() async {
+    String url = "https://api.intra.42.fr/v2/campus?per_page=100";
+    List<dynamic> campuses = await getData(url, false);//TODO error handling
+    return campuses;
+  }
+
   // this function is for testing urls - remove at the end
   Future<void> getTest(int id) async {
     // /v2/users/:id/locations_stats
@@ -91,7 +77,7 @@ class Api42{
 
     String url = "https://api.intra.42.fr/v2/cursus?page[number]=2";
     // print(url);
-    test = await getData(url); //TODO error handling
+    test = await getData(url, false); //TODO error handling
     // print("test: ${test.toString()}");
     test.forEach((entry) => {print('entry: $entry')});
     // print(test.toString());
@@ -101,19 +87,17 @@ class Api42{
     String url = addToUrl('https://api.intra.42.fr/v2/users', '', id);
     // String url = "https://api.intra.42.fr/v2/skills";
     print(url);
-    final student = await getData(url); //TODO error handling
+    final student = await getData(url, false); //TODO error handling
     return student;
     // print("test: ");
     // print(test.toString());
   }
 
-  String addToUrl(String urlStart, String urlEnd, int insert){
-    return ("$urlStart/$insert$urlEnd");
-  }
+
 // getActual
 //gets any data
 //   Todo: ensure token is active
-  Future<dynamic> getData(String urlString) async {
+  Future<dynamic> getData(String urlString, bool getLink) async {
     String? link = "";
     print("getting data:");
     var token = authService.getTokenData()["access_token"];
@@ -139,7 +123,10 @@ class Api42{
     print("status: ${status}");
     dynamic data = await json.decode(resp.body);
     link = resp.headers["link"];
-    if (link != null) {
+    print("just: $links");
+    if (getLink == false && link != null)
+      print("false: $links");
+    if (getLink == true && link != null) {
       links = parseHeaders(link);
       print("links: $links");
     }
@@ -148,10 +135,6 @@ class Api42{
     print("we got data");
     // print("data ${data.toString()}");
     return data;
-  }
-
-  String addSize(String url, int size){
-    return ('$url?page[size]=$size');
   }
 
   int getStatus(Map<String, String> headers){
@@ -163,17 +146,17 @@ class Api42{
   // Future<dynamic> getStats(id) async{
   //
   // }
-    Image getImage(data, type, {double width = 0, double height = 0}){
+  Image getImage(data, type, {double width = 0, double height = 0}){
     // print("type: $type");
     // print("type: : ${data["image"]["versions"]}");
     var url = data["image"]["versions"][type];
     if (url != null){
       // print("test image");
-    return getNetImage(url, width: width, height:height );
+      return getNetImage(url, width: width, height:height );
 
     }
     return Image(image: AssetImage("assets/42.jpg") , width: 25, height: 25,);
-    }
+  }
 
   Image getNetImage(String url, {double width = 0, double height = 0}){
     var token = authService.getTokenData()["access_token"];
@@ -183,10 +166,9 @@ class Api42{
       // print()
     }
     else {
-    image = Image.network(url, headers: {"Authorization": "Bearer $token"}, width: width, height: height,);}
+      image = Image.network(url, headers: {"Authorization": "Bearer $token"}, width: width, height: height,);}
     return image;
   }
-
 
 String getErrorStatus() {
     return errorStatus;

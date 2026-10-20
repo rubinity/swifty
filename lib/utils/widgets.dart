@@ -54,5 +54,27 @@ class OutlinedText extends StatelessWidget {
   }
 }
 
+class BorderedContainer extends StatelessWidget {
+  const BorderedContainer({super.key, required this.inside, required this.bgColor, this.sideMargin = 10});
+  final Widget inside;
+  final Color bgColor;
+  final double sideMargin;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: ShapeDecoration(shape:
+        RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: Color(0xFF00babc), width: 5)),
+          color: bgColor,),
+        margin: EdgeInsets.fromLTRB(sideMargin, 0, sideMargin, 0),
+        child: inside
+    );
+  }
+}
+
+
 
 

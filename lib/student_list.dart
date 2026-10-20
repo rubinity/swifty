@@ -2,11 +2,12 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:swifty/utils/utils.dart';
 import 'student.dart';
-import 'widgets.dart';
+import 'utils/widgets.dart';
 import 'api.dart';
 import 'package:swifty/oauth.dart';
-import 'package:swifty/time.dart';
+import 'package:swifty/utils/time.dart';
 
 
 // class MyList extends ListView{
@@ -36,6 +37,8 @@ class _StudentList extends State<StudentList>{
   Map<String, dynamic> _curStudent = {};
   late Api42 _api;
   final ScrollController _controller = ScrollController();
+  int _campus = -1;
+  List<dynamic> _campusList = [];
 
   Future<void> _getStudent(int id) async {
     try {
@@ -59,8 +62,15 @@ class _StudentList extends State<StudentList>{
     print("getting list $type");
     try {
       // var params = {"page": "1", "per_page" : "20", "pool_year": "2022", "pool_month" : "june"};
-      var new_students = (await _api.getStudents(type));//later it might be better to use a variable instead of current
-      _students.addAll(new_students);
+      var new_students = (await _api.getStudents(type, _campus));//later it might be better to use a variable instead of current
+      if (type == "current") {
+        _students = new_students;
+        // print(new_students);
+        // print(_students);
+      }
+      else
+        _students.addAll(new_students);
+      print("current length ${_students.length}");
     }
     catch(e){
       if (e == "no_scroll") // TODO: for testing
@@ -76,6 +86,11 @@ class _StudentList extends State<StudentList>{
       // students = api.students;
       // print("students: ${students.toString()}");
     });
+  }
+
+  void getCampuses() async{
+    _campusList = await _api.getCampuses();
+    print("campuses ${_campusList.length}");
   }
 
   void _onScroll() {
@@ -104,6 +119,7 @@ class _StudentList extends State<StudentList>{
     _api = widget.api;
     print("starting getting the list");
     _students = [];
+    getCampuses();
     _getList("current");
   }
 
@@ -120,44 +136,62 @@ class _StudentList extends State<StudentList>{
     // final screenWidth = MediaQuery.of(context).size.width;
     // final padWidth = screenWidth * 0.01;
     // print(["screen1", screenWidth]);
-    return (
-     ListView.builder(
-       controller: _controller,
-       itemCount: _students.length + 1,
-         itemBuilder: (context, index) {
-           final textTheme = Theme.of(context).textTheme;
-         if (index == 0)
-           {
-             return ListTile(
-               leading: Icon(Icons.refresh_outlined),
-               // title: Text("Home"),
-               onTap: () {
-                   _getList("current");
-               },
-               minTileHeight: 10,
-             );
-           }
-         else {
-           return (Card(margin: EdgeInsets.fromLTRB(4, 4, 4, 4),
-               child: ListTile(
-                 // dense: true,
-                 leading: _api.getImage(_students[index - 1], "micro"),
-                 title: Text(_students[index - 1]["login"]),
-                 // subtitle: Text(students[index]["login"]),
-                 titleTextStyle: textTheme.titleMedium?.copyWith(
-                     fontSize: 16, height: 1.0, fontWeight: FontWeight.bold),
-                 // subtitleTextStyle: textTheme.bodyMedium?.copyWith(height: 1.1),
-                 onTap: () => {_openStudent(_students[index - 1]["id"]),},
-                 minTileHeight: 28,
-                 minVerticalPadding: 2,
-                 tileColor: Color(0xFF00babc),
+    return Column(
+      children: [
+    Row(
+    children: [
+    TextButton(onPressed: () => _getList("current"), child: Icon(Icons.refresh_outlined)),
+      TextButton(onPressed: () => _api.authService.storeTest("I am data"), child: Text("save data")),
+      TextButton(onPressed: () => _api.authService.extractTest(), child: Text("print data")),
+    ],),
 
-                 // contentPadding: EdgeInsets.all(1),
+      Form(child:
+      BorderedContainer(
+        sideMargin: 0,
+        bgColor: Colors.white,
+        inside: Column(
+            children: [Row(children: [
+          Expanded(
+            child: DropdownButtonFormField(items: campusMenu(_campusList),
+                initialValue: _campus,
+                onChanged: (value){ _campus = value!; print(_campus);}),
+          ),
+              Text("gfdgdfg"),
 
-               )
+        ])]
 
-           ));}
-         }));
+        ),
+      )),
+        Expanded(
+          child: (
+           ListView.builder(
+             controller: _controller,
+             itemCount: _students.length,
+               itemBuilder: (context, index) {
+                 final textTheme = Theme.of(context).textTheme;
+                 return (Card(margin: EdgeInsets.fromLTRB(4, 4, 4, 4),
+                     child: ListTile(
+                       // dense: true,
+                       leading: _api.getImage(_students[index], "micro"),
+                       title: Text(_students[index]["login"]),
+                       // subtitle: Text(students[index]["login"]),
+                       titleTextStyle: textTheme.titleMedium?.copyWith(
+                           fontSize: 16, height: 1.0, fontWeight: FontWeight.bold),
+                       // subtitleTextStyle: textTheme.bodyMedium?.copyWith(height: 1.1),
+                       onTap: () => {_openStudent(_students[index]["id"]),},
+                       minTileHeight: 28,
+                       minVerticalPadding: 2,
+                       tileColor: Color(0xFF00babc),
+
+                       // contentPadding: EdgeInsets.all(1),
+
+                     )
+
+                 ));
+               })),
+        ),
+      ],
+    );
     // padding: EdgeInsets.symmetric(vertical: 4, horizontal: 2),
     //  children: [
     //

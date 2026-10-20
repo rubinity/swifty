@@ -5,6 +5,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart';
 import 'dart:convert';
 import 'package:swifty/main.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:swifty/secure_storage.dart';
 // import 'package: path/parth.dart';
 //
 // import 'package:oauth2/oauth2.dart' as oauth2;
@@ -14,11 +16,14 @@ import 'package:swifty/main.dart';
 // }
 
 
+
 class AuthService {
   AuthService({this.authorized = false});
 
   Map<String, dynamic> tokenData = {};
   bool authorized;
+  final SecureStorage _secureStorage = SecureStorage();
+
   // final appPath = "";
 
   var clientId = const String.fromEnvironment("CLIENT_ID");
@@ -70,6 +75,17 @@ class AuthService {
     print("testing json string");
     print(data);
     file.writeAsString(data);
+  }
+
+  Future<void> storeTest(String data) async{
+    // TODO: change to secure storage
+  _secureStorage.saveData(data);
+  }
+
+  Future<void> extractTest() async{
+    // TODO: change to secure storage
+    String? data = await _secureStorage.getData();
+    print("data: $data");
   }
 
   Future<Map<String, dynamic>> readToken() async{

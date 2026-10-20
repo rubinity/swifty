@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'oauth.dart';
 import 'api.dart' as api;
 import 'dart:io';
-import 'package:swifty/time.dart';
+import 'package:swifty/utils/time.dart';
 
 class AuthGate extends StatelessWidget {
   AuthGate({super.key, required this.authService});

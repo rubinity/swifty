@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:developer' as dev;
 import 'package:swifty/oauth.dart';
 import 'package:swifty/api.dart';
-import 'widgets.dart';
+import 'utils/widgets.dart';
 import 'package:json_annotation/json_annotation.dart';
 // import 'utils.dart' as u;
 
@@ -214,17 +214,7 @@ class _StudentViewState extends State<StudentView> {
           ),
 
           // Card(child: Text("${data["login"]}", style:  TextStyle(color: Colors.white)),),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: ShapeDecoration(shape:
-            RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: Color(0xFF00babc), width: 4)
-            ),
-              color: Colors.grey.shade800,),
-            margin: EdgeInsets.fromLTRB(10, 0, 10, 0),
-            // color: Colors.black,
-            child: Column(children: [
+          BorderedContainer(bgColor: Colors.grey.shade800, inside: Column(children: [
               // Text(data["login"],
               //     textAlign: TextAlign.center, style: TextStyle(fontSize: 16,
               //       // color:  Color(0xFFB9DCDC),
@@ -272,16 +262,7 @@ class _StudentViewState extends State<StudentView> {
       
           ),),
           SizedBox(height: 4,),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: ShapeDecoration(shape:
-            RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: Color(0xFF00babc), width: 5)),
-              color: Colors.white,),
-            margin: EdgeInsets.fromLTRB(10, 0, 10, 0),
-            // color: Colors.black,
-            child: ListView(
+          BorderedContainer(bgColor: Colors.white, inside: ListView(
               shrinkWrap: true,
               physics: NeverScrollableScrollPhysics(),
               children: [
@@ -294,16 +275,7 @@ class _StudentViewState extends State<StudentView> {
             )
           ),
           SizedBox(height: 4,),
-          Container(
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: ShapeDecoration(shape:
-              RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(color: Color(0xFF00babc), width: 5)),
-                color: Colors.white,),
-              margin: EdgeInsets.fromLTRB(10, 0, 10, 0),
-              // color: Colors.black,
-              child: ListView(
+          BorderedContainer(bgColor: Colors.white, inside: ListView(
                 shrinkWrap: true,
                 physics: NeverScrollableScrollPhysics(),
                 children: [
