@@ -8,6 +8,7 @@ import 'utils/widgets.dart';
 import 'api.dart';
 import 'package:swifty/oauth.dart';
 import 'package:swifty/utils/time.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 // class MyList extends ListView{
@@ -39,6 +40,10 @@ class _StudentList extends State<StudentList>{
   final ScrollController _controller = ScrollController();
   int _campus = -1;
   List<dynamic> _campusList = [];
+  Map<String, dynamic> params = {};
+  bool expandedFilter = false;
+
+  // void saveParams
 
   Future<void> _getStudent(int id) async {
     try {
@@ -109,26 +114,47 @@ class _StudentList extends State<StudentList>{
     // Load the next page when within 200px of the bottom
   }
 
+  Future<void> savePrefs() async{
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool("expanded", expandedFilter);
+    print("the value is $expandedFilter");
+  }
+
+  Future<void> loadPrefs() async{
+    final prefs = await SharedPreferences.getInstance();
+    final expanded = await prefs.getBool("expanded");
+    if (expanded != true)
+      expandedFilter = false;
+    else
+      expandedFilter = true;
+    print("expanded after $expandedFilter");
+
+  }
 
   @override
   void initState() {
     // TODO: implement initState
     print("initiating state");
+    print("expanded before $expandedFilter");
     super.initState();
     _controller.addListener(_onScroll);
     _api = widget.api;
     print("starting getting the list");
     _students = [];
+    loadPrefs();
+    // expandedFilter = _api.authService
     getCampuses();
     _getList("current");
   }
 
   @override
   void dispose() {
+    savePrefs();
     _controller.dispose();
+    print("expanded before close $expandedFilter");
     super.dispose();
   }
-
+// @overr
 
   @override
   Widget build(BuildContext context) {
@@ -138,14 +164,9 @@ class _StudentList extends State<StudentList>{
     // print(["screen1", screenWidth]);
     return Column(
       children: [
-    Row(
-    children: [
-    TextButton(onPressed: () => _getList("current"), child: Icon(Icons.refresh_outlined)),
-      TextButton(onPressed: () => _api.authService.storeTest("I am data"), child: Text("save data")),
-      TextButton(onPressed: () => _api.authService.extractTest(), child: Text("print data")),
-    ],),
-
-      Form(child:
+      Form(
+        // onChanged: _saveParams(),
+          child:
       BorderedContainer(
         sideMargin: 0,
         bgColor: Colors.white,
@@ -156,9 +177,34 @@ class _StudentList extends State<StudentList>{
                 initialValue: _campus,
                 onChanged: (value){ _campus = value!; print(_campus);}),
           ),
-              Text("gfdgdfg"),
+              FilledButton(onPressed: ()=> _getList("current"), child: Text("load"), style: ButtonStyle(),),
+              Checkbox(value: expandedFilter, onChanged: (value){setState(() {
+                if (value != null)
+                  expandedFilter = value;
+                else
+                  expandedFilter = false;
+                savePrefs();
+              });})
+              // Forms
 
-        ])]
+        ]),
+              Visibility(
+                visible: expandedFilter,
+                child: Row(children: [
+                  Expanded(child: TextField()),
+                  Expanded(child: TextField(keyboardType: TextInputType.datetime,)),
+                ]),
+              ),
+
+              Visibility(
+                visible: expandedFilter,
+                child: Row(children: [
+                  Expanded(child: TextField()),
+                  Expanded(child: TextField(keyboardType: TextInputType.datetime,)),
+                ]),
+              ),
+
+            ]
 
         ),
       )),

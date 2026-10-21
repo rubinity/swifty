@@ -6,7 +6,6 @@ import 'package:path/path.dart';
 import 'dart:convert';
 import 'package:swifty/main.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:swifty/secure_storage.dart';
 // import 'package: path/parth.dart';
 //
 // import 'package:oauth2/oauth2.dart' as oauth2;
@@ -22,12 +21,14 @@ class AuthService {
 
   Map<String, dynamic> tokenData = {};
   bool authorized;
-  final SecureStorage _secureStorage = SecureStorage();
+  static const _storage = FlutterSecureStorage();
 
   // final appPath = "";
 
-  var clientId = const String.fromEnvironment("CLIENT_ID");
-  var clientSecret = const String.fromEnvironment("CLIENT_SECRET");
+  // String clientId = "";
+  // const String.fromEnvironment("CLIENT_ID");
+  // String clientSecret = "";
+  // const String.fromEnvironment("CLIENT_SECRET");
   // String appPath;
   late final dirPath = appPath + "/appdata";
   late final filePath = appPath + "/appdata/test.json";
@@ -40,7 +41,10 @@ class AuthService {
   Future<void> getToken() async{
      // print("get t");
      // print(String.fromEnvironment("CLIENT_SECRET"));
-    final resp = await post(Uri.parse('https://api.intra.42.fr/oauth/token'), body: {"grant_type": "client_credentials", "client_id":clientId, "client_secret": clientSecret });
+    List<String> creds = await readCredentials();
+    if (creds.isEmpty)
+      creds = [const String.fromEnvironment("CLIENT_ID"), const String.fromEnvironment("CLIENT_SECRET")];//TODO change for auth form
+    final resp = await post(Uri.parse('https://api.intra.42.fr/oauth/token'), body: {"grant_type": "client_credentials", "client_id":creds[0], "client_secret": creds[1]});
     // this.authorized = true;
     // print(this.authorized);
     // print(String.fromEnvironment('CLIENT_ID'));
@@ -59,43 +63,69 @@ class AuthService {
     // await readToken();
 
   }
-  
+
+  Future <void> storeCredentials(String clientId, String clientSecret) async{
+    await _storage.write(key: "id", value: clientId);
+    await _storage.write(key: "secret", value: clientSecret);
+  }
+
+  Future <List<String>> readCredentials() async{
+    String? id = await _storage.read(key: "id");
+    String? secret = await _storage.read(key: "secret");
+    if (id != null && secret != null)
+      return [id, secret];
+    return[];
+  }
+
+  // Future<void> storeData(String key, String value) async{
+  //   await _storage.write(key: key, value: value);
+  // }
+  //
+  // Future<String?> readData(String key) async{
+  //   return await _storage.read(key: "data");
+  // }
+  //
   Future<void> storeToken(String data) async{
-    // TODO: change to secure storage
+    // TODO: add error handling
+
+    await _storage.write(key: "tokenData", value: data);
     // getApplicationDocumentsDirectory();
     // for checking files from console: db shell  run-as com.github.rubinity.swifty ls code_cache/appdata
     // Directory appDir = await getApplicationDocumentsDirectory();
     // String dirPath = appDir.path + "/appdata";
     // filePath = Directory.systemTemp.path + "/appdata/test.json";
-    print("dir ${appPath}");
-
-    final dir = Directory(dirPath);
-    await dir.create(recursive: true);
-    final file = File(filePath);
-    print("testing json string");
-    print(data);
-    file.writeAsString(data);
+  //   print("dir ${appPath}");
+  //
+  //   final dir = Directory(dirPath);
+  //   await dir.create(recursive: true);
+  //   final file = File(filePath);
+  //   print("testing json string");
+  //   print(data);
+  //   file.writeAsString(data);
   }
 
-  Future<void> storeTest(String data) async{
-    // TODO: change to secure storage
-  _secureStorage.saveData(data);
-  }
+  // Future<void> storeTest(String data) async{
+  //   // TODO: change to secure storage
+  // _secureStorage.saveData(data);
+  // }
 
-  Future<void> extractTest() async{
-    // TODO: change to secure storage
-    String? data = await _secureStorage.getData();
-    print("data: $data");
-  }
+  // Future<void> extractTest() async{
+  //   // TODO: change to secure storage
+  //   String? data = await _secureStorage.getData();
+  //   print("data: $data");
+  // }
 
   Future<Map<String, dynamic>> readToken() async{
     // TODO: change to secure storage, add error handling
     try {
-      print("opening file: ${filePath}");
-      final file = File(filePath);
-    final text = await file.readAsString();
-      print("text $text");
-    final data = jsonDecode(text);
+    //   print("opening file: ${filePath}");
+    //   final file = File(filePath);
+    // final text = await file.readAsString();
+    //   print("text $text");
+      String? rawData = await _storage.read(key: "tokenData");
+      if (rawData == null)
+        throw Exception("token data null");
+    final data = jsonDecode(rawData!);
       print("text after extraction $data");
     DateTime createdAt = DateTime.fromMicrosecondsSinceEpoch(data["created_at"] * 1000);
     // print(data["access_token"]);
@@ -123,7 +153,10 @@ class AuthService {
     print("now is ${now.toString()}");
     return (now.isAfter(expiresAt));
   }
-  
+
+  Future<void> Authent() async{
+
+  }
 
   Future<void> authorize () async {
     if (tokenData.isEmpty){
