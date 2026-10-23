@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:developer' as dev;
 import 'package:swifty/oauth.dart';
 import 'package:swifty/api.dart';
+import 'package:swifty/utils/utils.dart';
 import 'utils/widgets.dart';
 import 'package:json_annotation/json_annotation.dart';
 // import 'utils.dart' as u;
@@ -42,16 +43,33 @@ class _StudentViewState extends State<StudentView> {
   late Map<String, dynamic>cursus42 = {};
   late List<dynamic> skills = [];
   late List<dynamic> projects = [];
-  late String location = "";
+  late String campus = "";
+  late int primaryCampusId;
+  // late int other_campuses = student["campus"].length;
+  late var secret = [];
+  late String poolTime;
 
   int primaryCampus(List<dynamic> campuses){
     for (var campus in campuses){
-      // print("pr ${campus["is_primary"]}");
+      print("pr ${campus["is_primary"]}");
       if (campus["is_primary"] == true)
         // print("id ${campus["campus_id"].toString()}");
         return campus["campus_id"];
     }
     return 0;
+  }
+
+  List<String> getStudentSecret(List<dynamic> campuses){
+    List<String> secret = [];
+    for (var campus in campuses){
+      print("campus${campus.toString()}");
+      print("campus id - ${campus["id"]}, id $id");
+      if (campus["id"] != primaryCampusId){
+        secret.add(campus["name"]);
+      }
+    }
+    print("s ${secret.toString()}");
+    return secret;
   }
 
   String getCampus(List<dynamic> campuses, int id){
@@ -72,6 +90,7 @@ class _StudentViewState extends State<StudentView> {
     data = widget.args["data"];
     id = data["id"];
     student = widget.args["data"];
+    poolTime = getPoolTime();
     setData();
     // getTest();
 
@@ -121,20 +140,27 @@ class _StudentViewState extends State<StudentView> {
     return {};
   }
 
+  String getPoolTime(){
+    return "${student["pool_month"]}.${student["pool_year"]}";
+  }
+
   void setData() async{
     // await getStudent();
     // print("student ${data.toString()}");
     if (student.isNotEmpty) {
-      int id = primaryCampus(student["campus_users"]);
-      if (id != 0){
-        location = getCampus(student["campus"], id);
+      primaryCampusId = primaryCampus(student["campus_users"]);
+      if (primaryCampusId != 0){
+        campus = getCampus(student["campus"], primaryCampusId);
         cursus42 = getCursus(student["cursus_users"]);
         print("skills ${cursus42["skills"]}");
         if (cursus42["skills"] != null) {
           skills = cursus42["skills"];
         }
         projects = student["projects_users"];
-        print("projects ${student["projects_users"].toString()}");
+        // print("projects ${student["projects_users"].toString()}");
+        if (student["campus"].length > 1) {
+          secret = getStudentSecret(student["campus"]);
+        }
         // print("cursus ${cursus42["skills"].toString()}");
       }
     }
@@ -232,7 +258,7 @@ class _StudentViewState extends State<StudentView> {
               children: [
                 Icon(Icons.location_city_sharp, color: Colors.white, size: 20,),
                 SizedBox(width: 4,),
-                Text('campus: $location', style:  TextStyle(color: Colors.white)),
+                Text('campus: $campus', style:  TextStyle(color: Colors.white)),
               ]
             ),
             Row(
@@ -246,7 +272,7 @@ class _StudentViewState extends State<StudentView> {
                 children: [
                   Icon(Icons.start, color: Colors.white),
                   SizedBox(width: 4,),
-                  Text('Pool year: ${student["pool_year"].toString()}', style:  TextStyle(color: Colors.white)),
+                  Text('Pool time: $poolTime', style:  TextStyle(color: Colors.white)),
                 ],
               ),
               Row(
@@ -286,6 +312,25 @@ class _StudentViewState extends State<StudentView> {
                 ],
 
               )
+          ),
+          SizedBox(height: 4,),
+          BorderedContainer(bgColor: Colors.black,
+              inside: Column(
+                children: [
+                  Center(child: Text('Secret', style:  TextStyle(color: Colors.white))),
+                  Row(
+                    children: [
+                      // Icon(Icons.shape_line_outlined, color: Colors.white),
+                      // SizedBox(width: 4,),
+                      Expanded(
+                        child: Text('Other campuses: ${  listStringTrim(secret.toString())}',
+                            // overflow: TextOverflow.fade,
+                            style:  TextStyle(color: Colors.white)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
           ),
         ],
       ),

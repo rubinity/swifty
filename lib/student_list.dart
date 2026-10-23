@@ -34,13 +34,15 @@ class StudentList extends StatefulWidget{
 class _StudentList extends State<StudentList>{
 
   List<dynamic> _students = [];
+final _formKey = GlobalKey<FormState>();
   // Map<String, String> links = {};
   Map<String, dynamic> _curStudent = {};
   late Api42 _api;
   final ScrollController _controller = ScrollController();
   int _campus = -1;
   List<dynamic> _campusList = [];
-  Map<String, dynamic> params = {};
+  Map<String, String> params = {"page": "1"};
+  // Map<String,String> p = {};
   bool expandedFilter = false;
 
   // void saveParams
@@ -63,11 +65,11 @@ class _StudentList extends State<StudentList>{
     Navigator.pushNamed(context, "/student", arguments: {'data': _curStudent , 'api': _api});
   }
 
-  void _getList(String type) async{
+  void _getList(String type, {Map<String,String> params = const {}}) async{
     print("getting list $type");
     try {
       // var params = {"page": "1", "per_page" : "20", "pool_year": "2022", "pool_month" : "june"};
-      var new_students = (await _api.getStudents(type, _campus));//later it might be better to use a variable instead of current
+      var new_students = (await _api.getStudents(type, _campus, params: params));//later it might be better to use a variable instead of current
       if (type == "current") {
         _students = new_students;
         // print(new_students);
@@ -165,20 +167,42 @@ class _StudentList extends State<StudentList>{
     return Column(
       children: [
       Form(
+        key: _formKey,
         // onChanged: _saveParams(),
           child:
       BorderedContainer(
         sideMargin: 0,
         bgColor: Colors.white,
         inside: Column(
-            children: [Row(children: [
-          Expanded(
-            child: DropdownButtonFormField(items: campusMenu(_campusList),
-                initialValue: _campus,
-                onChanged: (value){ _campus = value!; print(_campus);}),
+            children: [Row(mainAxisAlignment: MainAxisAlignment.spaceBetween ,children: [
+          DropdownMenuFormField(dropdownMenuEntries: campusMenu(_campusList),
+              menuHeight: 450,
+              initialSelection: _campus,
+              inputDecorationTheme: InputDecorationTheme(isDense: true,
+                border: OutlineInputBorder(),
+                constraints: const BoxConstraints(maxHeight: 40), // the key line
+                // suffixIconConstraints: const BoxConstraints(minHeight: 0, minWidth: 0),
+              ),
+
+              textStyle: TextStyle(fontSize: 18, height: 1.0),
+              // itemHeight: 48,
+              // style: TextStyle(fontSize: 16, height: 1.0, color: Colors.black ),
+              onSelected: (value){ _campus = value!; print(_campus);},
           ),
-              FilledButton(onPressed: ()=> _getList("current"), child: Text("load"), style: ButtonStyle(),),
-              Checkbox(value: expandedFilter, onChanged: (value){setState(() {
+              // const SizedBox(width: 10,),
+              FilledButton(
+                  onPressed: (){
+                    _formKey.currentState!.save();
+                    print("params ${params.toString()}");
+                      _getList("current", params: params);
+                    },
+                  child: Text("Go", style: TextStyle(color: Colors.black, fontSize: 18),), style:
+              FilledButton.styleFrom(backgroundColor: Color(0xFF00babc) , visualDensity: VisualDensity.compact,padding: EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)))),
+              Checkbox(value: expandedFilter, checkColor: Colors.black, activeColor: Colors.white ,
+                  fillColor: WidgetStatePropertyAll(Colors.white),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(1)),
+                  onChanged: (value){setState(() {
                 if (value != null)
                   expandedFilter = value;
                 else
@@ -188,20 +212,110 @@ class _StudentList extends State<StudentList>{
               // Forms
 
         ]),
+              const SizedBox(height: 4,),
               Visibility(
+                maintainState: true,
                 visible: expandedFilter,
-                child: Row(children: [
-                  Expanded(child: TextField()),
-                  Expanded(child: TextField(keyboardType: TextInputType.datetime,)),
+                child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween ,children: [
+                  Expanded(child: DropdownMenuFormField<String>(dropdownMenuEntries: yearMenu(),
+                    inputDecorationTheme: InputDecorationTheme(isDense: true,
+                      border: OutlineInputBorder(),
+                      constraints: const BoxConstraints(maxHeight: 40), // the key line
+                      // suffixIconConstraints: const BoxConstraints(minHeight: 0, minWidth: 0),
+                    ),
+                    requestFocusOnTap: true, enableFilter: true,
+                    menuHeight: 400,
+                    textStyle: TextStyle(height: 1.0, fontSize: 18),
+                    onSelected: (value){
+                    if (value == "all")
+                      params.remove("pool_year");
+                    else
+                      params["pool_year"] = value!;
+                    },
+                    // onSaved: (value){params["pool_year"] = value;},
+                  )),
+                  const SizedBox(width: 4,),
+                  Expanded(child: DropdownMenuFormField<String>(dropdownMenuEntries: monthMenu(),
+                    inputDecorationTheme: InputDecorationTheme(isDense: true,
+                      border: OutlineInputBorder(),
+                      constraints: const BoxConstraints(maxHeight: 40), // the key line
+                      // suffixIconConstraints: const BoxConstraints(minHeight: 0, minWidth: 0),
+                    ),
+                    textStyle: TextStyle(height: 1.0, fontSize: 18),
+                    initialSelection: "all",
+                    onSelected: (value){
+                      if (value == "all")
+                        params.remove("pool_month");
+                      else
+                        params["pool_month"] = value!;},
+                    // onSaved: (value){params["pool_month"] = value!;},
+                  )),
                 ]),
               ),
 
               Visibility(
                 visible: expandedFilter,
-                child: Row(children: [
-                  Expanded(child: TextField()),
-                  Expanded(child: TextField(keyboardType: TextInputType.datetime,)),
-                ]),
+                maintainState: true,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
+                  child: Row(children: [
+                    Expanded(child: TextFormField(
+                      keyboardType: TextInputType.number,
+                      style: TextStyle(height: 1.0, fontSize: 18),
+                      decoration: InputDecoration(
+                        constraints: const BoxConstraints(maxHeight: 40, ) ,
+                        labelText: "page", border: OutlineInputBorder(),
+                        labelStyle: TextStyle(height: 1.0, fontSize: 18),
+                      ),
+                      onSaved: (value){params["page"] = value!;},
+                      // initialValue: 1,
+                    )),
+                    const SizedBox(width: 20,),
+                    Expanded(child: TextFormField(
+                      keyboardType: TextInputType.number,
+                      style: TextStyle(height: 1.0, fontSize: 18),
+                      decoration: InputDecoration(
+                        constraints: const BoxConstraints(maxHeight: 40, ) ,
+                        labelText: "per page", border: OutlineInputBorder(),
+                        labelStyle: TextStyle(height: 1.0, fontSize: 18),
+                      ),
+                      onSaved: (value){params["per_page"] = value!;},
+                      // initialValue: 1,
+                    )),
+                    // Expanded(child: TextField(keyboardType: TextInputType.datetime,)),
+                  ]),
+                ),
+              ),
+              Visibility(
+                maintainState: true,
+                visible: expandedFilter,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
+                  child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween , children: [
+                    Expanded(child: TextFormField(
+                      keyboardType: TextInputType.text,
+                      style: TextStyle(height: 1.0, fontSize: 18),
+                      decoration: InputDecoration(
+                        constraints: const BoxConstraints(maxHeight: 40, maxWidth: 100) ,
+                        labelText: "login search", border: OutlineInputBorder(),
+                        labelStyle: TextStyle(height: 1.0, fontSize: 18),
+                      ),
+                      onSaved: (value){params["range_login"] = value!;},
+                      onChanged: (value){
+                        if (value.length >= 3) {
+                          params["range_login"] = value!;
+                        _getList("current", params: params);}
+                        },
+                      // initialValue: 1,
+                    )),
+                    FilledButton(onPressed: ()=>{}, child: Text("clear filters"),
+                        style: FilledButton.styleFrom(backgroundColor: Color(0xFF00babc),
+                            visualDensity: VisualDensity.compact,
+                            padding: EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6))))
+                    // Expanded(child: TextField(keyboardType: TextInputType.datetime,)),
+                  ]),
+                ),
               ),
 
             ]
@@ -218,7 +332,7 @@ class _StudentList extends State<StudentList>{
                  return (Card(margin: EdgeInsets.fromLTRB(4, 4, 4, 4),
                      child: ListTile(
                        // dense: true,
-                       leading: _api.getImage(_students[index], "micro"),
+                       leading: SizedBox(width: 25, child: _api.getImage(_students[index], "micro")),
                        title: Text(_students[index]["login"]),
                        // subtitle: Text(students[index]["login"]),
                        titleTextStyle: textTheme.titleMedium?.copyWith(

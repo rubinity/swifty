@@ -147,12 +147,14 @@ class Api42{
   //
   // }
   Image getImage(data, type, {double width = 0, double height = 0}){
+    //Todo simplify images, wrap in a box
     // print("type: $type");
     // print("type: : ${data["image"]["versions"]}");
     var url = data["image"]["versions"][type];
     if (url != null){
       // print("test image");
-      return getNetImage(url, width: width, height:height );
+        var image = getNetImage(url, width: width, height: height);
+        return image;
 
     }
     return Image(image: AssetImage("assets/42.jpg") , width: 25, height: 25,);
@@ -162,11 +164,19 @@ class Api42{
     var token = authService.getTokenData()["access_token"];
     Image image;
     if (width == 0){
-      image = Image.network(url, headers: {"Authorization": "Bearer $token"}) ;
+      image = Image.network(url, headers: {"Authorization": "Bearer $token"},
+        errorBuilder: (context, error, stackTrace){ print("image error $error");
+        return Image(image: AssetImage("assets/42.jpg") , width: 25, height: 25,);
+        },
+      ) ;
       // print()
     }
     else {
-      image = Image.network(url, headers: {"Authorization": "Bearer $token"}, width: width, height: height,);}
+      image = Image.network(url, headers: {"Authorization": "Bearer $token"}, width: width, height: height,
+        errorBuilder: (context, error, stackTrace){ print("image error $error");
+        return Image(image: AssetImage("assets/42.jpg") , width: 25, height: 25,);
+        },
+      );}
     return image;
   }
 
