@@ -10,6 +10,7 @@ import 'prefs.dart';
 import 'package:swifty/oauth.dart';
 import 'package:swifty/utils/time.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:swifty/utils/constants.dart';
 import "exceptions.dart";
 
 const int defaultPerPage = 10;
@@ -53,6 +54,7 @@ final _formKey = GlobalKey<FormState>();
   // void saveParams
 
   Future<void> _getStudent(int id) async {
+    messages(context, "lalalalal");
     try {
       _curStudent = await _api.fetchStudent(id);
     }
@@ -680,7 +682,7 @@ final _formKey = GlobalKey<FormState>();
                            onTap: () => {_openStudent(_students[index]["id"]),},
                            minTileHeight: 28,
                            minVerticalPadding: 2,
-                           tileColor: Color(0xFF00babc),
+                           tileColor: turquoise,
 
                            // contentPadding: EdgeInsets.all(1),
 
@@ -700,7 +702,7 @@ final _formKey = GlobalKey<FormState>();
     //      => GestureDetector(
     //        onTap: ()=>{openStudent(student["id"]),},
     //        child: Container(
-    //            color: Color(0xFF00babc),
+    //            color: turquoise,
     //            margin: EdgeInsets.all(4),
     //            padding: EdgeInsets.fromLTRB(12, 2, 12, 2),
     //        //     // constraints: BoxConstraints.loose(Size.fromHeight(100)) ,

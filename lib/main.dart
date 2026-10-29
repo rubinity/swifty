@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:swifty/authgate.dart';
+import 'package:swifty/signin.dart';
 import 'package:swifty/oauth.dart';
 // import 'package:flutter/services.dart';
 import 'api.dart';
@@ -8,10 +8,11 @@ import 'page.dart';
 import 'prefs.dart';
 import 'student_list.dart';
 import 'student.dart';
-import 'authgate.dart';
+import 'signin.dart';
 import 'settings.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:swifty/utils/constants.dart';
 
 late final String appPath;
 enum customColors{ blue, black}
@@ -30,7 +31,7 @@ Future<void> main()
         // colorScheme: .fromSeed(seedColor: Colors.black),
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
-            backgroundColor: const Color(0xFF00BABC),
+            backgroundColor: turquoise,
             foregroundColor: Colors.black,
             visualDensity: VisualDensity.compact,
             padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -43,10 +44,10 @@ Future<void> main()
         ),
       ),
 
-      // home: AppPage(title: 'AuthGate', body: AuthGate()),
+      // home: AppPage(title: 'Sign in', body: Sign in()),
       // initialRoute: '/auth',
       routes: {
-        '/auth': (context) => AppPage(title: 'AuthGate', body: AuthGate(authService: authService)),
+        '/auth': (context) => AppPage(title: 'Sign in', body: SignIn(authService: authService)),
         '/settings': (context) => AppPage(title: 'Settings', body: Settings(authService: authService)),
         '/': (context) => AppPage(title: 'Students', body: StudentList(api: api)),
         '/student': (context) => AppPage(title: 'Student', body: StudentView(api: api, args: ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>)),

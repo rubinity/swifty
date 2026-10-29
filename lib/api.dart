@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:swifty/utils/utils.dart';
 import 'package:swifty/utils/urls.dart';
 import 'package:swifty/utils/network.dart';
+import 'package:swifty/utils/constants.dart';
 
 // Future<Map<String, dynamic>> loadJson() async {
 //   final text = await rootBundle.loadString('assets/test.json');
@@ -220,5 +221,12 @@ class Api42{
 String getErrorStatus() {
     return errorStatus;
   }
+}
+
+void messages(context, String text){
+  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    showCloseIcon: true, duration: Duration(minutes: 5),content: Text(text, style: TextStyle(color: Colors.black)),
+  padding: EdgeInsets.all(0), backgroundColor: turquoise, ));
+  // ScaffoldMessenger.of(context).
 }
 

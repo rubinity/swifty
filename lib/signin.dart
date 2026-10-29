@@ -7,15 +7,15 @@ import 'styles.dart';
 import 'dart:io';
 import 'package:swifty/utils/time.dart';
 
-class AuthGate extends StatefulWidget {
-  AuthGate({super.key, required this.authService});
+class SignIn extends StatefulWidget {
+  SignIn({super.key, required this.authService});
   AuthService authService;
 
   @override
-  State<AuthGate> createState() => _AuthGateState();
+  State<SignIn> createState() => _SignInState();
 }
 
-class _AuthGateState extends State<AuthGate> {
+class _SignInState extends State<SignIn> {
   String clientId = "";
   String clientSecret = "";
   final formKey = GlobalKey<FormState>();

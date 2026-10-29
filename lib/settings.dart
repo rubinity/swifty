@@ -4,6 +4,7 @@ import 'oauth.dart';
 import 'prefs.dart';
 import 'api.dart' as api;
 import 'styles.dart';
+import 'package:swifty/utils/constants.dart';
 
 class Settings extends StatefulWidget {
   Settings({super.key, required this.authService});
@@ -59,7 +60,7 @@ class _SettingsState extends State<Settings> {
         shape:
         RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: Color(0xFF00babc), width: 5)),
+            side: BorderSide(color: turquoise, width: 5)),
         // color: bgColor,
         child: Form(
           key: _settingsKey,

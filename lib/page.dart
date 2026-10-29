@@ -83,7 +83,7 @@ class AppPage extends StatelessWidget{
           ),
           ListTile(
             leading: Icon(Icons.login_outlined),
-            title: Text("Auth"),
+            title: Text("Sign in"),
             onTap: () => {goToPage(context, "/auth")},
             // shape: Border(bottom: BorderSide())
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:swifty/utils/constants.dart';
 class MainTitle extends StatefulWidget {
   const MainTitle({super.key});
 
@@ -35,8 +36,8 @@ class _TitleState extends State<MainTitle> {
 //             foreground: Paint()
 //               ..style = PaintingStyle.stroke
 //               ..strokeWidth = 2
-//               ..color = Color(0xFF00babc),
-//             // shadows: [Shadow(color: Color(0xFF00babc), blurRadius: 10)],
+//               ..color = turquoise,
+//             // shadows: [Shadow(color: turquoise, blurRadius: 10)],
 //           ),
 //         ),
 //           Text(text,
@@ -47,7 +48,7 @@ class _TitleState extends State<MainTitle> {
 //               color: Colors.white,
 //               // backgroundColor: Colors.black38,
 //               fontWeight: fontWeight,
-//               // shadows: [Shadow(color: Color(0xFF00babc), blurRadius: 10)],
+//               // shadows: [Shadow(color: turquoise, blurRadius: 10)],
 //             ),
 //           ),]
 //     );
@@ -71,7 +72,7 @@ class BorderedContainer extends StatelessWidget {
         decoration: ShapeDecoration(shape:
         RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: Color(0xFF00babc), width: 5)),
+            side: BorderSide(color: turquoise, width: 5)),
           color: bgColor,),
         margin: EdgeInsets.fromLTRB(sideMargin, topMargin, sideMargin, 0),
         child: child

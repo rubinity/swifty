@@ -3,6 +3,7 @@ import 'dart:developer' as dev;
 import 'package:swifty/oauth.dart';
 import 'package:swifty/api.dart';
 import 'package:swifty/utils/utils.dart';
+import 'package:swifty/utils/constants.dart';
 import 'utils/widgets.dart';
 import 'package:json_annotation/json_annotation.dart';
 // import 'utils.dart' as u;
@@ -208,7 +209,7 @@ class _StudentViewState extends State<StudentView> {
                       // RoundedRectangleBorder(
                       //   borderRadius: BorderRadius.circular(5),
                       // ),
-                      //     color: Color(0xFF00babc)),
+                      //     color: turquoise),
                       child:
                       Text("${student["displayname"]}", style:  TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold))
                       // OutlinedText(text: '${student["displayname"]} ', font: 20)
@@ -217,13 +218,13 @@ class _StudentViewState extends State<StudentView> {
                 alignment: Alignment(-0.85, 0),
                 // widthFactor: 10,
                 child: Container(
-                  // color: Color(0xFF00babc),
+                  // color: turquoise,
                   padding: EdgeInsets.fromLTRB(7, 6, 7, 0),
                   decoration: ShapeDecoration(shape:
                   RoundedRectangleBorder(
                     borderRadius: BorderRadius.only(topLeft: Radius.circular(7), topRight: Radius.circular(7)),
                   ),
-                      color: Color(0xFF00babc)
+                      color: turquoise
                     ),
                   child: Container(
                     padding: EdgeInsets.fromLTRB(4, 2, 4, 2),
@@ -232,7 +233,7 @@ class _StudentViewState extends State<StudentView> {
                     RoundedRectangleBorder(
                         borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5), bottomLeft: Radius.circular(4), bottomRight: Radius.circular(4)),
                       // borderRadius: BorderRadius.circular(5),
-                      // side: BorderSide(color: Color(0xFF00babc), width: 5, strokeAlign: BorderSide.strokeAlignInside)
+                      // side: BorderSide(color: turquoise, width: 5, strokeAlign: BorderSide.strokeAlignInside)
                         ),
                         color: Colors.grey.shade800),
                     // color: Colors.black54,
