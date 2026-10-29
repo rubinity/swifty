@@ -1,11 +1,38 @@
 import 'package:flutter/material.dart';
 
 void goToPage(context, route){
-  if (ModalRoute.of(context)?.settings.name != route)
-    Navigator.pushNamed(context, route);
-  else
-    Navigator.pop(context);
+  if (ModalRoute.of(context)?.isCurrent != true) {
+    print("double click");
+    return;
+  }
+  bool routeFound = false;
+  String? curRoute = ModalRoute.of(context)?.settings.name;
+  var nav = Navigator.of(context);
+  nav.pop();//pop menu
+    print("current route $curRoute");
+  print("we need route $route");
+  if (curRoute == route)
+    return;
+  if (route == "/") {
+    nav.popUntil(ModalRoute.withName("/"));
+    return;
+  }
+  if (curRoute == "/settings") {
+    nav.popUntil((rt){
+      if (rt.settings.name == "/" || rt.settings.name == "/student")
+        return true;
+      if (rt.settings.name == route) {
+        routeFound = true;
+        return true;
+      }
+      return false;
+    });
+  }
+  if (!routeFound)
+    nav.pushNamed(route);
 }
+
+  // else
 
 
 // List<DropdownMenuItem<dynamic>> campusMenu(List<dynamic> camp){
@@ -18,23 +45,15 @@ void goToPage(context, route){
 // }
 
 List<DropdownMenuEntry<int>> campusMenu(List<dynamic> camp){
-
-  var list = [DropdownMenuEntry<int>(label: "all", value: -1, style:
-  ButtonStyle(visualDensity: VisualDensity.compact,
-    textStyle: WidgetStatePropertyAll(TextStyle()),))];
-  var entry;
+  List<DropdownMenuEntry<int>> list = [];
+  DropdownMenuEntry<int> entry;
   for (var option in camp)
- {
-   entry = DropdownMenuEntry<int>(
-     label: option["name"], value: option["id"], style:
-   ButtonStyle(visualDensity: VisualDensity.compact,
-     textStyle: WidgetStatePropertyAll(TextStyle()),),);
-   if (option["name"] != "Heilbronn") {
-      list.add(entry);
-    }
-    else {
-      list.insert(1, entry);
-    }
+  {
+    entry = DropdownMenuEntry<int>(
+      label: option["name"], value: option["id"], style:
+    ButtonStyle(visualDensity: VisualDensity.compact,
+      textStyle: WidgetStatePropertyAll(TextStyle()),),);
+    list.add(entry);
   }
   return list;
 }

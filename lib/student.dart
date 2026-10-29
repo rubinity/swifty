@@ -185,154 +185,161 @@ class _StudentViewState extends State<StudentView> {
 
     // debugPrint(student.toString(), wrapWidth: 1000);
     // debugPrint(data.toString(), wrapWidth: 1000);r
-    return SingleChildScrollView(
-      child: Column(
-        // mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        // spacing: 1,
-        // mainAxisSize: MainAxisSize.max,
-        children: [
-          SizedBox(height: 10),
-          Center(
-            child: api.getImage(data, "small"),
-          ),
-
-              Center(child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 0.1),
-                  margin: EdgeInsets.fromLTRB(0, 5, 0, 0),
-                  // decoration: ShapeDecoration(shape:
-                  // RoundedRectangleBorder(
-                  //   borderRadius: BorderRadius.circular(5),
-                  // ),
-                  //     color: Color(0xFF00babc)),
-                  child:
-                  Text("${student["displayname"]}", style:  TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold))
-                  // OutlinedText(text: '${student["displayname"]} ', font: 20)
-                )),
-          Align(
-            alignment: Alignment(-0.85, 0),
-            // widthFactor: 10,
-            child: Container(
-              // color: Color(0xFF00babc),
-              padding: EdgeInsets.fromLTRB(7, 6, 7, 0),
-              decoration: ShapeDecoration(shape:
-              RoundedRectangleBorder(
-                borderRadius: BorderRadius.only(topLeft: Radius.circular(7), topRight: Radius.circular(7)),
+    return Align(
+      alignment: Alignment.topCenter,
+      child: SingleChildScrollView(
+        child: Container(
+          child: Column(
+            // mainAxisSize: MainAxisSize.min,
+            // mainAxisAlignment: MainAxisAlignment.start,
+            // crossAxisAlignment: CrossAxisAlignment.stretch,
+            // spacing: 1,
+            // mainAxisSize: MainAxisSize.max,
+            children: [
+              SizedBox(height: 10),
+              Center(
+                child: api.getImage(data, "small"),
               ),
-                  color: Color(0xFF00babc)
-                ),
-              child: Container(
-                padding: EdgeInsets.fromLTRB(4, 2, 4, 2),
-                // margin: EdgeInsets.fromLTRB(0, 0, 0, 1),
-                decoration: ShapeDecoration(shape:
-                RoundedRectangleBorder(
-                    borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5), bottomLeft: Radius.circular(4), bottomRight: Radius.circular(4)),
-                  // borderRadius: BorderRadius.circular(5),
-                  // side: BorderSide(color: Color(0xFF00babc), width: 5, strokeAlign: BorderSide.strokeAlignInside)
+        
+                  Center(child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 0.1),
+                      margin: EdgeInsets.fromLTRB(0, 5, 0, 0),
+                      // decoration: ShapeDecoration(shape:
+                      // RoundedRectangleBorder(
+                      //   borderRadius: BorderRadius.circular(5),
+                      // ),
+                      //     color: Color(0xFF00babc)),
+                      child:
+                      Text("${student["displayname"]}", style:  TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold))
+                      // OutlinedText(text: '${student["displayname"]} ', font: 20)
+                    )),
+              Align(
+                alignment: Alignment(-0.85, 0),
+                // widthFactor: 10,
+                child: Container(
+                  // color: Color(0xFF00babc),
+                  padding: EdgeInsets.fromLTRB(7, 6, 7, 0),
+                  decoration: ShapeDecoration(shape:
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(topLeft: Radius.circular(7), topRight: Radius.circular(7)),
+                  ),
+                      color: Color(0xFF00babc)
                     ),
-                    color: Colors.grey.shade800),
-                // color: Colors.black54,
-                child: Text("${student["login"]}", style:  TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, height:1.0 ))
-                // OutlinedText(text: student["login"], font: 16, fontWeight: FontWeight.normal,),
+                  child: Container(
+                    padding: EdgeInsets.fromLTRB(4, 2, 4, 2),
+                    // margin: EdgeInsets.fromLTRB(0, 0, 0, 1),
+                    decoration: ShapeDecoration(shape:
+                    RoundedRectangleBorder(
+                        borderRadius: BorderRadius.only(topLeft: Radius.circular(5), topRight: Radius.circular(5), bottomLeft: Radius.circular(4), bottomRight: Radius.circular(4)),
+                      // borderRadius: BorderRadius.circular(5),
+                      // side: BorderSide(color: Color(0xFF00babc), width: 5, strokeAlign: BorderSide.strokeAlignInside)
+                        ),
+                        color: Colors.grey.shade800),
+                    // color: Colors.black54,
+                    child: Text("${student["login"]}", style:  TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, height:1.0 ))
+                    // OutlinedText(text: student["login"], font: 16, fontWeight: FontWeight.normal,),
+                  ),
+        
+                ),
               ),
-
-            ),
-          ),
-
-          // Card(child: Text("${data["login"]}", style:  TextStyle(color: Colors.white)),),
-          BorderedContainer(bgColor: Colors.grey.shade800, inside: Column(children: [
-              // Text(data["login"],
-              //     textAlign: TextAlign.center, style: TextStyle(fontSize: 16,
-              //       // color:  Color(0xFFB9DCDC),
-              //       color: Colors.white,
-              //       shadows: [Shadow(color: Colors.black, blurRadius: 2)],
-              //       // backgroundColor: Colors.white
-              //     )),
-
-              Row(children: [
-                Icon(Icons.email_outlined, color: Colors.white),
-                SizedBox(width: 4,),
-                Text("${data["email"]}", style:  TextStyle(color: Colors.white)),
-              ],),
-            Row(
-              children: [
-                Icon(Icons.location_city_sharp, color: Colors.white, size: 20,),
-                SizedBox(width: 4,),
-                Text('campus: $campus', style:  TextStyle(color: Colors.white)),
-              ]
-            ),
-            Row(
-              children: [
-                Icon(Icons.wallet_outlined, color: Colors.white),
-                SizedBox(width: 4,),
-                Text('wallet: ${student["wallet"].toString()}', style:  TextStyle(color: Colors.white)),
-              ],
-            ),
-              Row(
-                children: [
-                  Icon(Icons.start, color: Colors.white),
-                  SizedBox(width: 4,),
-                  Text('Pool time: $poolTime', style:  TextStyle(color: Colors.white)),
-                ],
-              ),
-              Row(
-                children: [
-                  Icon(Icons.arrow_circle_up_outlined, color: Colors.white),
-                  SizedBox(width: 4,),
-                  Text('level: ${cursus42["level"].toString()}', style:  TextStyle(color: Colors.white)),
-                ],
-              ),
-            // Text(data["Campus"])
-      
-          ]
-      
-          ),),
-          SizedBox(height: 4,),
-          BorderedContainer(bgColor: Colors.white, inside: ListView(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              children: [
-                Center(child: Text("Skills", style: TextStyle(color: Colors.black))),
-             ... skills.map(
-                 (skill)=> Text("${skill["name"]}: ${skill["level"]}", style: TextStyle(color: Colors.black))
-             )
-              ],
-      
-            )
-          ),
-          SizedBox(height: 4,),
-          BorderedContainer(bgColor: Colors.white, inside: ListView(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                children: [
-                  Center(child: Text("Projects", style: TextStyle(color: Colors.black))),
-                  ... projects.map(
-                          (project)=> Text("${project["project"]["name"]}", style: TextStyle(color: Colors.black))
-                  )
-                ],
-
-              )
-          ),
-          SizedBox(height: 4,),
-          BorderedContainer(bgColor: Colors.black,
-              inside: Column(
-                children: [
-                  Center(child: Text('Secret', style:  TextStyle(color: Colors.white))),
+        
+              // Card(child: Text("${data["login"]}", style:  TextStyle(color: Colors.white)),),
+              BorderedContainer(bgColor: Colors.grey.shade800, child: Column(children: [
+                  // Text(data["login"],
+                  //     textAlign: TextAlign.center, style: TextStyle(fontSize: 16,
+                  //       // color:  Color(0xFFB9DCDC),
+                  //       color: Colors.white,
+                  //       shadows: [Shadow(color: Colors.black, blurRadius: 2)],
+                  //       // backgroundColor: Colors.white
+                  //     )),
+        
+                  Row(children: [
+                    Icon(Icons.email_outlined, color: Colors.white),
+                    SizedBox(width: 4,),
+                    Text("${data["email"]}", style:  TextStyle(color: Colors.white)),
+                  ],),
+                Row(
+                  children: [
+                    Icon(Icons.location_city_sharp, color: Colors.white, size: 20,),
+                    SizedBox(width: 4,),
+                    Text('campus: $campus', style:  TextStyle(color: Colors.white)),
+                  ]
+                ),
+                Row(
+                  children: [
+                    Icon(Icons.wallet_outlined, color: Colors.white),
+                    SizedBox(width: 4,),
+                    Text('wallet: ${student["wallet"].toString()}', style:  TextStyle(color: Colors.white)),
+                  ],
+                ),
                   Row(
                     children: [
-                      // Icon(Icons.shape_line_outlined, color: Colors.white),
-                      // SizedBox(width: 4,),
-                      Expanded(
-                        child: Text('Other campuses: ${  listStringTrim(secret.toString())}',
-                            // overflow: TextOverflow.fade,
-                            style:  TextStyle(color: Colors.white)),
+                      Icon(Icons.start, color: Colors.white),
+                      SizedBox(width: 4,),
+                      Text('Pool time: $poolTime', style:  TextStyle(color: Colors.white)),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Icon(Icons.arrow_circle_up_outlined, color: Colors.white),
+                      SizedBox(width: 4,),
+                      Text('level: ${cursus42["level"].toString()}', style:  TextStyle(color: Colors.white)),
+                    ],
+                  ),
+                // Text(data["Campus"])
+        
+              ]
+        
+              ),),
+              SizedBox(height: 4,),
+              BorderedContainer(bgColor: Colors.white, child: ListView(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  children: [
+                    Center(child: Text("Skills", style: TextStyle(color: Colors.black))),
+                 ... skills.map(
+                     (skill)=> Text("${skill["name"]}: ${skill["level"]}", style: TextStyle(color: Colors.black))
+                 )
+                  ],
+        
+                )
+              ),
+              SizedBox(height: 4,),
+              BorderedContainer(bgColor: Colors.white, child: ListView(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    children: [
+                      Center(child: Text("Projects", style: TextStyle(color: Colors.black))),
+                      ... projects.map(
+                              (project)=> Text("${project["project"]["name"]}", style: TextStyle(color: Colors.black))
+                      )
+                    ],
+        
+                  )
+              ),
+              if (secret.isNotEmpty)
+              ...[SizedBox(height: 4,),
+              BorderedContainer(bgColor: Colors.black,
+                  child: Column(
+                    children: [
+                      Center(child: Text('Secret', style:  TextStyle(color: Colors.white))),
+                      Row(
+                        children: [
+                          // Icon(Icons.shape_line_outlined, color: Colors.white),
+                          // SizedBox(width: 4,),
+                          Expanded(
+                            child: Text('Other campuses: ${  listStringTrim(secret.toString())}',
+                                // overflow: TextOverflow.fade,
+                                style:  TextStyle(color: Colors.white)),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
+              ),]
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

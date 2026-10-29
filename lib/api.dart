@@ -2,6 +2,7 @@ import 'package:swifty/oauth.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart';
+import 'package:swifty/exceptions.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/material.dart';
 import 'package:swifty/utils/utils.dart';
@@ -26,46 +27,79 @@ class Api42{
 
   AuthService authService;
   dynamic students = [];
-  Map<String,String> links = {};
+  Map<String,String> links = {"first":"", "prev" : "", "next" : "", "last": ""};
   dynamic test = [];
   Map<String, dynamic> student = {};
   String errorStatus = "";
 
-  // range for the following users params
-  // id
-  // login
-  // email
-  // created_at
-  // updated_at
-  // pool_year
-  // pool_month
-  // kind
-  // status
-  Future<List<dynamic>> getStudents(String type, int campusId, { Map<String, String> params = const {} }) async {
+  void clearLinks() {
+    links = {"first":"", "prev" : "", "next" : "", "last": ""};
+  }
+
+  bool linkExists(String type){
+    if (links[type] != "")
+      return true;
+    return false;
+  }
+
+  bool isLastPage() {
+    return (!linkExists("last"));
+  }
+
+  bool isFirstPage() {
+    return (!linkExists("first"));
+  }
+
+
+  Future<List<dynamic>> fetchStudents(String type, int campusId, { Map<String, String> params = const {} }) async {
     String url = "https://api.intra.42.fr/v2/users";
+    print("fetchStudents links $links, $type");
+    // print("links exist ${linkExists(type)}");
     if (type == "current") {
       if (campusId != -1)
         url = "https://api.intra.42.fr/v2/campus/${campusId.toString()}/users";
       if (params != {})
         url = buildUrl(url, params);
     }
-    else if (links[type] != null) {
+    else if (linkExists(type)) {
       url = links[type]!;
+      print("fetchStudents url $url");
     }
     else {
-      throw Exception("no_scroll");
+      throw NoScrollException(type);
     }
 
     print("url $url");
     print("we got students");
-    List<dynamic> students = await getData(url, true);//TODO error handling
+    List<dynamic> students = await fetchData(url, type);//TODO error handling
     return students;
     // print("students in api ${students.toString()}");
   }
 
-  Future<List<dynamic>> getCampuses() async {
+  void updateLink(String type, String page){
+    print("trying to trim $page");
+    String url = "";
+    for (String value in links.values){
+      if (value.isNotEmpty){
+        url = value;
+        break;
+      }
+    }
+    // if (type == "next") {
+    //   url = links["last"]!;
+    //   print(url);
+    // }
+    // else
+    //   url = links["first"]!;
+    List l = getPageFromUrl(url);
+    String newUrl = replacePage(url, page, l[1], l[2]);
+    links[type] = newUrl;
+    print("link updated after trimming: $type - $newUrl");
+  }
+
+  Future<List<dynamic>> fetchCampuses() async {
     String url = "https://api.intra.42.fr/v2/campus?per_page=100";
-    List<dynamic> campuses = await getData(url, false);//TODO error handling
+    List<dynamic> campuses = await fetchData(url, null);//TODO error handling
     return campuses;
   }
 
@@ -77,17 +111,17 @@ class Api42{
 
     String url = "https://api.intra.42.fr/v2/cursus?page[number]=2";
     // print(url);
-    test = await getData(url, false); //TODO error handling
+    test = await fetchData(url, null); //TODO error handling
     // print("test: ${test.toString()}");
     test.forEach((entry) => {print('entry: $entry')});
     // print(test.toString());
   }
 
-  Future<Map<String, dynamic>> getStudent(int id) async {
+  Future<Map<String, dynamic>> fetchStudent(int id) async {
     String url = addToUrl('https://api.intra.42.fr/v2/users', '', id);
     // String url = "https://api.intra.42.fr/v2/skills";
     print(url);
-    final student = await getData(url, false); //TODO error handling
+    final student = await fetchData(url, null); //TODO error handling
     return student;
     // print("test: ");
     // print(test.toString());
@@ -97,9 +131,9 @@ class Api42{
 // getActual
 //gets any data
 //   Todo: ensure token is active
-  Future<dynamic> getData(String urlString, bool getLink) async {
+  Future<dynamic> fetchData(String urlString, String? getLink) async {
     String? link = "";
-    print("getting data:");
+    print("getting data: $getLink");
     var token = authService.getTokenData()["access_token"];
     if (token == null || authService.tokenExpired(authService.tokenData)) {
       await authService.authorize();
@@ -121,13 +155,16 @@ class Api42{
     }
 
     print("status: ${status}");
+    // print("raw links: ${resp.headers["link"]}");
     dynamic data = await json.decode(resp.body);
     link = resp.headers["link"];
-    print("just: $links");
-    if (getLink == false && link != null)
-      print("false: $links");
-    if (getLink == true && link != null) {
-      links = parseHeaders(link);
+    // print("just: $links");
+    // if (getLink == false && link != null)
+    //   print("false: $links");
+    if (getLink != null && link != null) {
+      parseHeaders(link, getLink, links);
+      print("scroll type $getLink");
+      print("raw links: $link");
       print("links: $links");
     }
 
@@ -153,14 +190,14 @@ class Api42{
     var url = data["image"]["versions"][type];
     if (url != null){
       // print("test image");
-        var image = getNetImage(url, width: width, height: height);
+        var image = fetchNetImage(url, width: width, height: height);
         return image;
 
     }
     return Image(image: AssetImage("assets/42.jpg") , width: 25, height: 25,);
   }
 
-  Image getNetImage(String url, {double width = 0, double height = 0}){
+  Image fetchNetImage(String url, {double width = 0, double height = 0}){
     var token = authService.getTokenData()["access_token"];
     Image image;
     if (width == 0){

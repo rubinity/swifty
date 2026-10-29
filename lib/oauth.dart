@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart';
+import 'package:swifty/exceptions.dart';
 import 'dart:convert';
 import 'package:swifty/main.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -30,20 +31,16 @@ class AuthService {
   // String clientSecret = "";
   // const String.fromEnvironment("CLIENT_SECRET");
   // String appPath;
-  late final dirPath = appPath + "/appdata";
-  late final filePath = appPath + "/appdata/test.json";
+  // late final dirPath = appPath + "/appdata";
+  // late final filePath = appPath + "/appdata/test.json";
 
 
 
   Map<String, dynamic> getTokenData(){
     return tokenData;
 }
-  Future<void> getToken() async{
-     // print("get t");
-     // print(String.fromEnvironment("CLIENT_SECRET"));
-    List<String> creds = await readCredentials();
-    if (creds.isEmpty)
-      creds = [const String.fromEnvironment("CLIENT_ID"), const String.fromEnvironment("CLIENT_SECRET")];//TODO change for auth form
+  Future<void> _getToken() async{
+    List<String> creds = await _authent();
     final resp = await post(Uri.parse('https://api.intra.42.fr/oauth/token'), body: {"grant_type": "client_credentials", "client_id":creds[0], "client_secret": creds[1]});
     // this.authorized = true;
     // print(this.authorized);
@@ -67,6 +64,15 @@ class AuthService {
   Future <void> storeCredentials(String clientId, String clientSecret) async{
     await _storage.write(key: "id", value: clientId);
     await _storage.write(key: "secret", value: clientSecret);
+  }
+
+  Future <void> clearCredentials() async{
+    await _storage.delete(key: "id");
+    await _storage.delete(key: "secret");
+  }
+
+  Future <void> clearToken() async{
+    await _storage.delete(key: "tokenData");
   }
 
   Future <List<String>> readCredentials() async{
@@ -116,7 +122,7 @@ class AuthService {
   // }
 
   Future<Map<String, dynamic>> readToken() async{
-    // TODO: change to secure storage, add error handling
+    // TODO: add error handling
     try {
     //   print("opening file: ${filePath}");
     //   final file = File(filePath);
@@ -154,8 +160,23 @@ class AuthService {
     return (now.isAfter(expiresAt));
   }
 
-  Future<void> Authent() async{
+  Future<List<String>> _authent() async{
+    List<String> creds = await readCredentials();
+    if (creds.isEmpty) {
+      throw NoCredsException;
+      // creds = [
+      //   const String.fromEnvironment("CLIENT_ID"),
+      //   const String.fromEnvironment("CLIENT_SECRET")
+      // ];
+      await storeCredentials(creds[0], creds[1]);
+    }
+    return creds;
+  }
 
+  Future <void> input(String clientId, String clientSecret) async {
+   storeCredentials(clientId, clientSecret);
+    print("id $clientId");
+    print("secret $clientSecret");
   }
 
   Future<void> authorize () async {
@@ -168,7 +189,7 @@ class AuthService {
     if (tokenData.isEmpty || tokenExpired(tokenData)){
       print("getting token from website");
       // print("no token");|| tokenExpired()
-      await getToken();
+      await _getToken();
       print("authorization succeeded");
     }
     // print(this.authorized);

@@ -26,6 +26,7 @@ class AppPage extends StatelessWidget{
 
     // TODO: implement build
     return (Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -78,11 +79,11 @@ class AppPage extends StatelessWidget{
           ListTile(
             leading: Icon(Icons.settings),
             title: Text("Settings"),
-            onTap: () => {goToPage(context, "/auth")},
+            onTap: () => {goToPage(context, "/settings")},
           ),
           ListTile(
-            leading: Icon(Icons.search),
-            title: Text("Search"),
+            leading: Icon(Icons.login_outlined),
+            title: Text("Auth"),
             onTap: () => {goToPage(context, "/auth")},
             // shape: Border(bottom: BorderSide())
           ),
