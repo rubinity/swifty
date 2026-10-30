@@ -13,7 +13,7 @@ String buildUrl(String url, Map<String, String> filter){
     else if (param == "per_page")
       output = "${output}&per_page=$value";
     else if (param.substring(0, 6) == "range_")//change for different ranges using regex
-      output = "${output}&range[${param.substring(6)}]=${value},${value}zzzzzzzzz";
+      output = "${output}&range[${param.substring(6)}]=${value},${value}zzzzzzzz";
     else
       output = "${output}&filter[$param]=$value";
   });

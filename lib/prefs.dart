@@ -32,12 +32,13 @@ class Prefs{
     return [];
   }
 
-  static Future<bool> loadPrefs() async{
+  static Future<void> loadPrefs(List<bool> expandedFilter) async{
     final prefs = await SharedPreferences.getInstance();
     final expanded = await prefs.getBool("expanded");
+    print("the loaded value is $expanded");
     if (expanded != null)
-      return expanded;
-    return false;
+      expandedFilter[0] = expanded;
+    // return false;
   }
 
   static Future<void> clearCampuses() async{

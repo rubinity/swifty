@@ -110,7 +110,7 @@ class Api42{
     // String url = addToUrl('https://api.intra.42.fr/v2/users', '/locations_stats', id);
     // String url = addToUrl('https://api.intra.42.fr/v2/cursus', '', id);
 
-    String url = "https://api.intra.42.fr/v2/cursus?page[number]=2";
+    String url = "https://api.intra.42.fr/v2/projects/21";
     // print(url);
     test = await fetchData(url, null); //TODO error handling
     // print("test: ${test.toString()}");
@@ -156,7 +156,7 @@ class Api42{
     }
 
     print("status: ${status}");
-    // print("raw links: ${resp.headers["link"]}");
+    // print("headers: ${resp.headers.toString().substring(100)}");
     dynamic data = await json.decode(resp.body);
     link = resp.headers["link"];
     // print("just: $links");

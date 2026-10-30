@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -12,6 +13,7 @@ import 'package:swifty/utils/time.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:swifty/utils/constants.dart';
 import "exceptions.dart";
+import 'package:easy_debounce/easy_debounce.dart';
 
 const int defaultPerPage = 10;
 
@@ -35,6 +37,8 @@ final _formKey = GlobalKey<FormState>();
   // Map<String, String> links = {};
   final GlobalKey _firstTileKey = GlobalKey();
   bool currentTrim = false;
+  bool loginNotFound = false;
+  bool _isSearch = false;
   double _controllerJump = 0;
   bool _jumpNeeded = false;
   double? _controllerOffset;
@@ -44,16 +48,19 @@ final _formKey = GlobalKey<FormState>();
   int _tail = 0;
   late Api42 _api;
   final ScrollController _controller = ScrollController();
+  final TextEditingController _yearController = TextEditingController();
   int _campus = -1;
   List<Map<String, dynamic>> _campusList = [];
   Map<String, String> params = {"page": "1", "per_page": defaultPerPage.toString() };
   // Map<String,String> p = {};
-  bool expandedFilter = false;
+  List<bool> _expandedFilter = [false];
+  String _poolYear = "all";
   Map<String, dynamic> p = {"top": 1, "bottom": 1, "top_trimmed":false, "bottom_trimmed": false, "max": 1000, "per_page": defaultPerPage};
-
+  String _validationMsg = "";
   // void saveParams
 
   Future<void> _getStudent(int id) async {
+    _api.getTest(0);
     showSnack(context, "lalalalal", 3);
     try {
       _curStudent = await _api.fetchStudent(id);
@@ -144,35 +151,55 @@ final _formKey = GlobalKey<FormState>();
 
   }
 
+  void _search(String value) {
+    if (value.isNotEmpty) {
+        _isSearch = true;
+      params["range_login"] = value;
+      _getList("current", params);
+    }
+    else {
+      _isSearch = false;
+      params.remove("range_login");
+      setState(() {
+        _students = [];
+      });
+    }
+  }
+
+
   Future<void> _getList(String type, Map<String,String> params) async{
    if (_loading)
      return;
 
-       try { await getCampuses();
-   try {
-     await _fetchList(type, params);
-   }
-   catch (e) {
-     if (e is NoScrollException) // TODO: for testing
-         {
-       if (e.type == "next") {
-         p["bottom_trimmed"] = false;
+    try { await getCampuses();
+     try {
+       await _fetchList(type, params);
+     }
+     catch (e) {
+       if (e is NoScrollException) // TODO: for testing
+           {
+         if (e.type == "next") {
+           p["bottom_trimmed"] = false;
+         }
+       }
+       else if (e == NoCredsException) {
+         dynamic result = await Navigator.pushNamed(context, "/auth");
+         await _fetchList(type, params);
+         print("id ${result["clientId"]}");
+         print("secret ${result["clientSecret"]}");
+         print("list need to authent");
+       }
+       else {
+
        }
      }
-     else if (e == NoCredsException) {
-       dynamic result = await Navigator.pushNamed(context, "/auth");
-       await _fetchList(type, params);
-       print("id ${result["clientId"]}");
-       print("secret ${result["clientSecret"]}");
-       print("list need to authent");
-     }
-     else {
-
-     }
-   }
    if (!mounted)
      return;
    setState(() {
+     // if (fullLogin && _students.isEmpty) {
+     //   loginNotFound = true;
+     //   fullLogin = false;
+     // }
      if (_jumpNeeded) {
        // _callbackNeeded = false
        WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -364,13 +391,14 @@ final _formKey = GlobalKey<FormState>();
   void initState() {
     // TODO: implement initState
     print("initiating state");
-    print("expanded before $expandedFilter");
+    print("expanded before $_expandedFilter");
     super.initState();
     // _controller.addListener(_onScroll);
     _api = widget.api;
     print("starting getting the list");
     _students = [];
-    Prefs.loadPrefs();
+    Prefs.loadPrefs(_expandedFilter);
+    print("expanded after $_expandedFilter");
     // expandedFilter = _api.authService
     print("init params");
 
@@ -383,30 +411,40 @@ final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
-    Prefs.savePrefs(expandedFilter);
+    Prefs.savePrefs(_expandedFilter[0]);
     _controller.dispose();
-    print("expanded before close $expandedFilter");
+    print("expanded before close $_expandedFilter");
     super.dispose();
   }
 
   void clearFilters(){
     // _campus = -1;
 
-    // params.remove("pool_year");
-    // params.remove("pool_month");
+    params.remove("pool_year");
+    params.remove("pool_month");
     params["page"] = "1";
     params["per_page"] = defaultPerPage.toString();
+    // _poolYear = "all";
+    _yearController.clear();
+    _yearController.text = "all";
+    print("controlle after clear ${_yearController.text}");
     print("params ${params}");
     // filterPage = "Page number";
     // filterPerPage = "Filter per page";
     // loginSearch = "Login search";
     print("campus $_campus");
+    print("campus ${_yearController.text}");
   }
 // @overr
 
   Future<void> refresh() async {
     print("refreshing $params");
     _getList("current", params);
+  }
+  void _valMsgUpdate(String msg)
+  {
+    // if (_validationMsg.isEmpty)
+      _validationMsg += " $msg";
   }
 
   @override
@@ -433,7 +471,7 @@ final _formKey = GlobalKey<FormState>();
               children: [Row(mainAxisAlignment: MainAxisAlignment.spaceBetween ,children: [
             DropdownMenuFormField(dropdownMenuEntries: campusMenu(_campusList),
                 label: Text("Campuses"),
-                menuHeight: 450,
+              menuHeight: 450,
                 initialSelection: -1,
                 inputDecorationTheme: InputDecorationTheme(isDense: true,
                   border: OutlineInputBorder(),
@@ -448,22 +486,26 @@ final _formKey = GlobalKey<FormState>();
 
                 FilledButton(
                     onPressed: (){
-                      _formKey.currentState!.save();
-                      print("params ${params.toString()}");
-                        _getList("current", params);
-
+                      setState(() {
+                        _validationMsg = "";
+                      });
+                     if (_formKey.currentState!.validate()) {
+                       _formKey.currentState!.save();
+                       print("params ${params.toString()}");
+                       _getList("current", params);
+                     }
                       },
                     child: Text("Go", style: TextStyle(color: Colors.black, fontSize: 18),),
                 ),
-                Checkbox(value: expandedFilter, checkColor: Colors.black, activeColor: Colors.white ,
+                Checkbox(value: _expandedFilter[0], checkColor: Colors.black, activeColor: Colors.white ,
                     fillColor: WidgetStatePropertyAll(Colors.white),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(1)),
                     onChanged: (value){setState(() {
                   if (value != null)
-                    expandedFilter = value;
+                    _expandedFilter[0] = value;
                   else
-                    expandedFilter = false;
-                  Prefs.savePrefs(expandedFilter);
+                    _expandedFilter[0] = false;
+                  Prefs.savePrefs(_expandedFilter[0]);
                 });})
                 // Forms
 
@@ -471,23 +513,50 @@ final _formKey = GlobalKey<FormState>();
                 const SizedBox(height: 4,),
                 Visibility(
                   maintainState: true,
-                  visible: expandedFilter,
+                  visible: _expandedFilter[0],
                   child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween ,children: [
                     Expanded(child: DropdownMenuFormField<String>(dropdownMenuEntries: yearMenu(),
                       requestFocusOnTap: true, enableFilter: true, initialSelection: "all",
                       menuHeight: 400, label: Text("Pool year"),
+                      controller: _yearController,
                       textStyle: TextStyle(height: 1.0, fontSize: 18),
-                      onSelected: (value){
-                        // poolYear = value!;
-                        print("selecting pool_year");
-                        print("params ${params.toString()}");
+                      validator: (_){
+                      var value = _yearController.text.trim();
                       if (value == "all")
+                        return null;
+                      if (value.isEmpty) {
+                        _validationMsg = "Select or enter the value of the pool year.";
+                        // showSnack(context, "You must select or enter the value")
+                        return "";
+                      }
+                      else {
+                        var val = int.tryParse(value);
+                        if (value.length != 4 || val == null || val < 1900 || val > 3000) {
+                          _validationMsg = "Pool year should be a 4-digit number.";
+                          return "";
+                        }
+                        return null;
+                      }},
+                      // onSelected: (value){
+                      //   // _yearController. = value!;
+                      //   print("selecting pool_year");
+                      //   // print("params ${params.toString()}");
+                      // if (value == "all")
+                      //   params.remove("pool_year");
+                      // else
+                      //   params["pool_year"] = _yearController.text;
+                      // print("params ${params.toString()}");
+                      //   print("p year ${_yearController.text}");
+                      // },
+                      onSaved: (value){
+                      if (_yearController.text == "all")
                         params.remove("pool_year");
                       else
-                        params["pool_year"] = value!;
-                      print("params ${params.toString()}");
+                        params["pool_year"] = _yearController.text;
+                      // else
+                      //   params.remove("pool_year");
+                      print("controlle ${_yearController.text}");
                       },
-                      // onSaved: (value){params["pool_year"] = value;},
                     )),
                     const SizedBox(width: 4,),
                     Expanded(child: DropdownMenuFormField<String>(dropdownMenuEntries: monthMenu(),
@@ -505,22 +574,40 @@ final _formKey = GlobalKey<FormState>();
                 ),
 
                 Visibility(
-                  visible: expandedFilter,
+                  visible: _expandedFilter[0],
                   maintainState: true,
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
                     child: Row(children: [
                       Expanded(child: TextFormField(
                         keyboardType: TextInputType.number,
+                        initialValue: "1",
                         style: TextStyle(height: 1.0, fontSize: 18),
                         decoration: InputDecoration(
                           constraints: const BoxConstraints(maxHeight: 40, ) ,
                           labelText: "Page number", border: OutlineInputBorder(),
                           labelStyle: TextStyle(height: 1.0, fontSize: 16),
                         ),
+                        validator:(value){
+                          if (value == null || value.trim().isEmpty) {
+                            _valMsgUpdate("Page number shouldn't be empty.");
+                            return "";
+                          }
+                          else {
+                              var val = int.tryParse(value.trim());
+                              if (val == null || val < 1 ) {
+                                _valMsgUpdate("Page number is an integer starting from 1.");
+                                return "";
+                              }
+                          }
+                          return null;
+                        },
                         onSaved: (value){
-                          if (value != null && value.isNotEmpty)
+                          // print("vvv ${value!.isEmpty}");
+                          // if (value != null && value.isNotEmpty)
                             params["page"] = value!;
+                          // else
+                          //   params["page"] = "1";
                           },
 
                         // onChanged: (value){
@@ -538,9 +625,22 @@ final _formKey = GlobalKey<FormState>();
                           labelStyle: TextStyle(height: 1.0, fontSize: 16),
                         ),
                         onSaved: (value){
-                          if (value != null && value.isNotEmpty)
                             params["per_page"] = value!;},
-                        // initialValue: 1,
+                        initialValue: defaultPerPage.toString(),
+                        validator: (value){
+                      if (value == null || value.trim().isEmpty) {
+                      _valMsgUpdate("Items per page shouldn't be empty.");
+                      return "";
+                      }
+                      else {
+                      var val = int.tryParse(value.trim());
+                      if (val == null || val < 1 || val > 100) {
+                      _valMsgUpdate("Items per page must be 1 through 100.");
+                      return "";
+                      }
+                      }
+                      return null;
+                      },
                       )),
                       // Expanded(child: TextField(keyboardType: TextInputType.datetime,)),
                     ]),
@@ -548,7 +648,7 @@ final _formKey = GlobalKey<FormState>();
                 ),
                 Visibility(
                   maintainState: true,
-                  visible: expandedFilter,
+                  visible: _expandedFilter[0],
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
                     child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween , children: [
@@ -558,24 +658,33 @@ final _formKey = GlobalKey<FormState>();
                         style: TextStyle(height: 1.0, fontSize: 18),
                         decoration: InputDecoration(
                           constraints: const BoxConstraints(maxHeight: 40, maxWidth: 100) ,
-                          labelText: "login search", border: OutlineInputBorder(),
+                          labelText: "Login search", border: OutlineInputBorder(),
                           labelStyle: TextStyle(height: 1.0, fontSize: 18),
                         ),
                         // onSaved: (value){
                         //
                         //   params["range_login"] = value!;
                         //   },
-                        onChanged: (value){
-                          if (value != null && value.length >= 3) {
+                        onChanged: (value){EasyDebounce.debounce("search", Duration(milliseconds: 500), ()=>_search(value));
 
-                            params["range_login"] = value!;
-                          _getList("current", params);}
-                          else
-                            params.remove("range_login");
-                          print(value);
-                          },
-                        // initialValue: 1,
-                      )),
+                        }
+                      //       (value){
+                      //     // if (value.isNotEmpty) {
+                      //     //   params["range_login"] = value!;
+                      //     //   _getList("current", params);
+                      //     // }
+                      //     // else {
+                      //     //   params.remove("range_login");
+                      //     //   setState(() {
+                      //     //     _students = [];
+                      //     //   });
+                      //     // }
+                      //     print(value);
+                      //
+                      //     },
+                      //   // initialValue: 1,
+                      )
+                      ),
                       SizedBox(width: 8),
                       Expanded(
                         child: FilledButton(onPressed: (){
@@ -588,6 +697,27 @@ final _formKey = GlobalKey<FormState>();
                         ),
                       )
                       // Expanded(child: TextField(keyboardType: TextInputType.datetime,)),
+                    ]),
+                  ),
+                ),
+                Visibility(
+                  maintainState: true,
+                  visible: _expandedFilter[0],
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 2, 0, 0),
+                    child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween , children: [
+                      Expanded(child: Text(_validationMsg,
+                          style: TextStyle(height: 1.0, fontSize: 12, color: Colors.red),
+
+                          // onSaved: (value){
+                          //
+                          //   params["range_login"] = value!;
+                          //   },
+                          // onChanged:
+
+
+                      )
+                      ),
                     ]),
                   ),
                 ),
@@ -658,9 +788,17 @@ final _formKey = GlobalKey<FormState>();
                    // itemExtent: 36,
                    physics: AlwaysScrollableScrollPhysics(),
                    controller: _controller,
-                   itemCount: _students.length,
+                   itemCount: (_isSearch && _students.length == 0) ? _students.length + 1 : _students.length,
                      itemBuilder: (context, index) {
                        final textTheme = Theme.of(context).textTheme;
+                       print("is full $_isSearch");
+                     if (_isSearch && _students.length == 0 && index == _students.length){
+                       _isSearch = false;
+                      return Container(padding: EdgeInsets.symmetric(horizontal: 15), child: Text("Login not found", style: TextStyle(fontSize: 18),),);
+                     }
+                     else
+
+
                        // print("cur index $index");
                           return (Card(margin: EdgeInsets.fromLTRB(4, 4, 4, 4),
                            child: ListTile(

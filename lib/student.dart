@@ -60,6 +60,13 @@ class _StudentViewState extends State<StudentView> {
     return 0;
   }
 
+  // int printP(List<dynamic> projects){
+  //   for (var p in projects){
+  //     print("project ${p.toString()}");
+  //   }
+  //   return 0;
+  // }
+
   List<String> getStudentSecret(List<dynamic> campuses){
     List<String> secret = [];
     for (var campus in campuses){
@@ -180,7 +187,10 @@ class _StudentViewState extends State<StudentView> {
     if (args is Map<String, dynamic>) {
         data = args["data"];
         api = args["api"];
+        print("data $data");
     }
+    // printP(projects);
+
     // stats = await api.getStats(data["id"]);
     // print("student $student");
 
@@ -313,6 +323,7 @@ class _StudentViewState extends State<StudentView> {
                       Center(child: Text("Projects", style: TextStyle(color: Colors.black))),
                       ... projects.map(
                               (project)=> Text("${project["project"]["name"]}", style: TextStyle(color: Colors.black))
+
                       )
                     ],
         
