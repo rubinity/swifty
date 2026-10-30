@@ -223,9 +223,12 @@ String getErrorStatus() {
   }
 }
 
-void messages(context, String text){
+void showSnack(context, String text, [int duration = 60]){
+  bool showIcon = false;
+  if (duration > 3)
+    showIcon = true;
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-    showCloseIcon: true, duration: Duration(minutes: 5),content: Text(text, style: TextStyle(color: Colors.black)),
+    showCloseIcon: showIcon, duration: Duration(seconds: duration),content: Padding(padding: EdgeInsets.symmetric(horizontal: 10), child: Text(text, style: TextStyle(color: Colors.black, height: 1.0))),
   padding: EdgeInsets.all(0), backgroundColor: turquoise, ));
   // ScaffoldMessenger.of(context).
 }

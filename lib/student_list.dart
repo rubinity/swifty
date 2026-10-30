@@ -36,7 +36,7 @@ final _formKey = GlobalKey<FormState>();
   final GlobalKey _firstTileKey = GlobalKey();
   bool currentTrim = false;
   double _controllerJump = 0;
-  bool _callbackNeeded = false;
+  bool _jumpNeeded = false;
   double? _controllerOffset;
   bool _dragTriggered = false;
   Map<String, dynamic> _curStudent = {};
@@ -49,12 +49,12 @@ final _formKey = GlobalKey<FormState>();
   Map<String, String> params = {"page": "1", "per_page": defaultPerPage.toString() };
   // Map<String,String> p = {};
   bool expandedFilter = false;
-  Map<String, dynamic> p = {"top": 1, "bottom": 1, "top_trimmed":false, "bottom_trimmed": false, "max": 40, "per_page": defaultPerPage};
+  Map<String, dynamic> p = {"top": 1, "bottom": 1, "top_trimmed":false, "bottom_trimmed": false, "max": 1000, "per_page": defaultPerPage};
 
   // void saveParams
 
   Future<void> _getStudent(int id) async {
-    messages(context, "lalalalal");
+    showSnack(context, "lalalalal", 3);
     try {
       _curStudent = await _api.fetchStudent(id);
     }
@@ -173,17 +173,19 @@ final _formKey = GlobalKey<FormState>();
    if (!mounted)
      return;
    setState(() {
-     if (_controllerJump != 0) {
+     if (_jumpNeeded) {
        // _callbackNeeded = false
        WidgetsBinding.instance.addPostFrameCallback((_) {
-         print("size: ${_firstTileKey.currentContext?.size?.height}");
+         // print("size: ${_firstTileKey.currentContext?.size?.height}");
          if (_controller.hasClients) {
            print("has clients $_controllerOffset");
+           print("preparing to jump ${_controllerOffset}");
            _controller.jumpTo(_controllerOffset! + _controllerJump);
            _controllerJump = 0;
            currentTrim = false;
          }
        });
+       _jumpNeeded = false;
      }
 
    });
@@ -224,13 +226,12 @@ final _formKey = GlobalKey<FormState>();
   Future<void> _fetchList(String type, Map<String,String> params) async{
     int length = _students.length;
     print("links from api ${_api.links}");
-    bool nextTrim = false;
+    bool _nextTrimInProgress = false;
     if (type == "current") {
       _tail = 0;
       _api.clearLinks();//todo add jump
   }
-    // _controllerJump = 0;
-    // _controllerOffset = 0;
+
     // var params = {"page": "1", "per_page" : "20", "pool_year": "2022", "pool_month" : "june"};
     _loading = true;
     var new_students = (await _api.fetchStudents(type, _campus, params: params));//later it might be better to use a variable instead of current
@@ -242,13 +243,18 @@ final _formKey = GlobalKey<FormState>();
 
     if (type == "current") {
       _students = new_students;
+      _controllerJump = 0;
+      _controllerOffset = 0;
+      _jumpNeeded = true;
+      print("jump is planned ${_controllerOffset}");
       print("length ${_students.length}");
     }
     else if(type == "next") {
       // print("links after next ${_api.links}");
       // if (_students.length + new_students.length > )
       if ((length + new_students.length) > p["max"]) {
-        nextTrim = true;
+        _nextTrimInProgress = true;
+        _jumpNeeded = true;
         _students = new_students;
         _controllerJump = 0;
         _controllerOffset = 0;
@@ -265,7 +271,7 @@ final _formKey = GlobalKey<FormState>();
       //check if the end
       // if (_api.linkExists(type))
       p["top_trimmed"] = false;
-
+        _jumpNeeded = true;
         _controllerJump = new_students.length * 36;
         _controllerOffset = _controller.position.pixels;
         print("compare ${_controller.position.pixels}, ${_controller.offset}");
@@ -276,7 +282,7 @@ final _formKey = GlobalKey<FormState>();
     updatePagination(type, params);
     length = _students.length;
     print("length  ${length}, p max ${p["max"] }");
-    if (length > p["max"] || nextTrim == true) {
+    if (length > p["max"] || _nextTrimInProgress == true) {
 
       studentsTrim(type, params["per_page"]);
       print("length after trimming 1 ${_students.length}");
@@ -614,7 +620,7 @@ final _formKey = GlobalKey<FormState>();
                   // print("flag $_dragTriggered");
 
                   if ((n is OverscrollNotification && atBottom && n.overscroll > 0 )||(n is ScrollUpdateNotification && atBottom && n.scrollDelta! > 0)) {
-                    if (_controllerJump == 0) {
+                    if (!_jumpNeeded) {
                         // _controllerJump = getPerPage(params["per_page"]) * -36;
                         // _controllerOffset = n.metrics.pixels;
                         // currentTrim = true;
@@ -644,52 +650,40 @@ final _formKey = GlobalKey<FormState>();
                 return false;
               },
 
-              child: (
-               ListView.builder(
-                 // itemExtent: 36,
-                 physics: AlwaysScrollableScrollPhysics(),
-                 controller: _controller,
-                 itemCount: _students.length,
-                   itemBuilder: (context, index) {
-                     final textTheme = Theme.of(context).textTheme;
-                     final text;
-                      if(index == 0) {
+              child: Scrollbar(
+                controller: _controller,
+                thumbVisibility: true,
+                child: (
+                 ListView.builder(
+                   // itemExtent: 36,
+                   physics: AlwaysScrollableScrollPhysics(),
+                   controller: _controller,
+                   itemCount: _students.length,
+                     itemBuilder: (context, index) {
+                       final textTheme = Theme.of(context).textTheme;
+                       // print("cur index $index");
+                          return (Card(margin: EdgeInsets.fromLTRB(4, 4, 4, 4),
+                           child: ListTile(
 
-                      };
-                     if (index >= _students.length) {
-                       if (_loading) {
-                         text = "loading";
-                         print("loading $_loading");
-                       }
-                       else
-                         text = "no more";
-                       return (Center(
-                         child: Text(text),
-                         // minTileHeight: 28,
+                             // dense: true,
+                             leading: SizedBox(width: 25, child: _api.getImage(_students[index], "micro")),
+                             title: Text(_students[index]["login"]),
+                             // subtitle: Text(students[index]["login"]),
+                             titleTextStyle: textTheme.titleMedium?.copyWith(
+                                 fontSize: 16, height: 1.0, fontWeight: FontWeight.bold),
+                             // subtitleTextStyle: textTheme.bodyMedium?.copyWith(height: 1.1),
+                             onTap: () => {_openStudent(_students[index]["id"]),},
+                             minTileHeight: 28,
+                             minVerticalPadding: 2,
+                             tileColor: turquoise,
+
+                             // contentPadding: EdgeInsets.all(1),
+
+                           )
+
                        ));
-                     }
-                     else
-                        return (Card(margin: EdgeInsets.fromLTRB(4, 4, 4, 4),
-                         child: ListTile(
-                           key: index == 0 ? _firstTileKey : null,
-                           // dense: true,
-                           leading: SizedBox(width: 25, child: _api.getImage(_students[index], "micro")),
-                           title: Text(_students[index]["login"]),
-                           // subtitle: Text(students[index]["login"]),
-                           titleTextStyle: textTheme.titleMedium?.copyWith(
-                               fontSize: 16, height: 1.0, fontWeight: FontWeight.bold),
-                           // subtitleTextStyle: textTheme.bodyMedium?.copyWith(height: 1.1),
-                           onTap: () => {_openStudent(_students[index]["id"]),},
-                           minTileHeight: 28,
-                           minVerticalPadding: 2,
-                           tileColor: turquoise,
-
-                           // contentPadding: EdgeInsets.all(1),
-
-                         )
-
-                     ));
-                   })),
+                     })),
+              ),
             ),
           ),
         ],
