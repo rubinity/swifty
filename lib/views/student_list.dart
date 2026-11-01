@@ -5,14 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:swifty/utils/utils.dart';
 import 'student.dart';
-import 'utils/widgets.dart';
-import 'api.dart';
-import 'prefs.dart';
-import 'package:swifty/oauth.dart';
-import 'package:swifty/utils/time.dart';
+import '../utils/widgets.dart';
+import '../services/api.dart';
+import '../services/prefs.dart';
+import 'package:swifty/services/oauth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:swifty/utils/constants.dart';
-import "exceptions.dart";
+import 'package:swifty/common/constants.dart';
+import "../common/exceptions.dart";
 import 'package:easy_debounce/easy_debounce.dart';
 
 const int defaultPerPage = 10;
@@ -60,10 +59,18 @@ final _formKey = GlobalKey<FormState>();
   // void saveParams
 
   Future<void> _getStudent(int id) async {
-    _api.getTest(0);
-    showSnack(context, "lalalalal", 3);
+    // _api.getTest(0);
     try {
+      print("check student $_curStudent");
       _curStudent = await _api.fetchStudent(id);
+      print("check student $_curStudent");
+      if (_api.getStatusCode() != 200) {
+        print("not 200");
+        showSnack(context,
+            "Could not get student data, please check your credentials or restart the app later. ${_api
+                .getErrorMsg()}");
+        return;
+      }
     }
     catch(e){
     if (e == NoCredsException)
@@ -77,7 +84,11 @@ final _formKey = GlobalKey<FormState>();
     }
     else
     {
-      print("error in student get: $e");
+      // print("error in student get: $e");
+
+      showSnack(context,
+      "Could not get the student data, please check your credentials or restart the app later. ${_api
+      .getErrorMsg()}");
       return;
     }
     }
@@ -174,6 +185,13 @@ final _formKey = GlobalKey<FormState>();
     try { await getCampuses();
      try {
        await _fetchList(type, params);
+       if (_api.getStatusCode() != 200) {
+         showSnack(context,
+             "Could not get student list, please check your credentials or restart the app later. ${_api
+                 .getErrorMsg()}");
+         return;
+       }
+
      }
      catch (e) {
        if (e is NoScrollException) // TODO: for testing
@@ -326,51 +344,28 @@ final _formKey = GlobalKey<FormState>();
   }
 
   Future<void> getCampuses() async{
+    if (_campusList.isNotEmpty && _campusList.length > 1)
+      return;
     try {
-      if (_campusList.isEmpty) {
         _campusList = await Prefs.loadCampuses();
-      }
-      if (_campusList.isEmpty ) {
+      if (_campusList.isEmpty || _campusList.length == 1 ) {
         _campusList = await fetchCampuses();
-        await Prefs.saveCampuses(_campusList);
       }
+      if (_campusList.isEmpty || _campusList.length == 1) {
+          showSnack(context, "Could not get campus list, please check your credentials or restart the app later. ${_api.getErrorMsg()}");
+          return;
+      }
+      await Prefs.saveCampuses(_campusList);
     }
     catch(e){
       if (e == NoCredsException) {
+        print("caught");
         dynamic result = await Navigator.pushNamed(context, "/auth");
         _campusList = await fetchCampuses();
         await Prefs.saveCampuses(_campusList);
       }
     }
   }
-
-
-  // void _onScroll() {
-    // final position = _controller.position;
-    // print("scroll");
-    // if (position.pixels >= position.maxScrollExtent)
-    // print("max ${position.maxScrollExtent}");
-    // print("off ${_controller.offset}");
-    // if (position.maxScrollExtent == _controller.offset)
-    // {
-      // position.
-      // print("scroll detected");
-      // _getList("next", params);
-      // p["bottom"] += 1;
-      // // overscrolled at the bottom (stretched past the end)
-      // print(_students.length);
-    // }
-    // if (position.pixels <= position.minScrollExtent && p["top_trimmed"] == true)
-    // if (position.minScrollExtent == _controller.offset)
-    // {
-      // print("scroll detected");
-      // _getList("prev", params);
-      // p["top"] -= 1;
-  // overscrolled at the bottom (stretched past the end)
-  //     print(_students.length);
-  //   }
-  // }
-
 
   List<Map<String, dynamic>> convertCampusList(List<Map<String, dynamic>> list){
     List<Map<String, dynamic>> newList = [{"id": -1, "name": "all"}];
@@ -668,21 +663,7 @@ final _formKey = GlobalKey<FormState>();
                         onChanged: (value){EasyDebounce.debounce("search", Duration(milliseconds: 500), ()=>_search(value));
 
                         }
-                      //       (value){
-                      //     // if (value.isNotEmpty) {
-                      //     //   params["range_login"] = value!;
-                      //     //   _getList("current", params);
-                      //     // }
-                      //     // else {
-                      //     //   params.remove("range_login");
-                      //     //   setState(() {
-                      //     //     _students = [];
-                      //     //   });
-                      //     // }
-                      //     print(value);
-                      //
-                      //     },
-                      //   // initialValue: 1,
+
                       )
                       ),
                       SizedBox(width: 8),
@@ -738,17 +719,9 @@ final _formKey = GlobalKey<FormState>();
                 // print("notif ${_dragTriggered}");
                 final atBottom = n.metrics.extentAfter < 1; // 0 when content is short
                 final atTop = n.metrics.extentBefore < 1;
-                final isScrollish = n is ScrollUpdateNotification || n is OverscrollNotification;
-                // print("scr ${isScrollish}");
-                // if (isScrollish && atBottom && _dragTriggered) {
-                //   _dragTriggered = false;
-                //   _getList("next", params);
-                // }
-
                 if (_dragTriggered) {
                   // print("isscr $isScrollish, atbottom $atBottom");
                   // print("flag $_dragTriggered");
-
                   if ((n is OverscrollNotification && atBottom && n.overscroll > 0 )||(n is ScrollUpdateNotification && atBottom && n.scrollDelta! > 0)) {
                     if (!_jumpNeeded) {
                         // _controllerJump = getPerPage(params["per_page"]) * -36;
@@ -791,7 +764,7 @@ final _formKey = GlobalKey<FormState>();
                    itemCount: (_isSearch && _students.length == 0) ? _students.length + 1 : _students.length,
                      itemBuilder: (context, index) {
                        final textTheme = Theme.of(context).textTheme;
-                       print("is full $_isSearch");
+                       // print("is full $_isSearch");
                      if (_isSearch && _students.length == 0 && index == _students.length){
                        _isSearch = false;
                       return Container(padding: EdgeInsets.symmetric(horizontal: 15), child: Text("Login not found", style: TextStyle(fontSize: 18),),);

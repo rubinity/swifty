@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:swifty/utils/constants.dart';
+import 'package:swifty/common/constants.dart';
 class MainTitle extends StatefulWidget {
   const MainTitle({super.key});
 

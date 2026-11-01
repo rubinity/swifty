@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart';
-import 'package:swifty/exceptions.dart';
+import 'package:swifty/common/exceptions.dart';
 import 'dart:convert';
 import 'package:swifty/main.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -20,7 +20,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class AuthService {
   AuthService({this.authorized = false});
 
-  Map<String, dynamic> tokenData = {};
+  Map<String, dynamic> _tokenData = {};
   bool authorized;
   static const _storage = FlutterSecureStorage();
 
@@ -36,27 +36,50 @@ class AuthService {
 
 
 
-  Map<String, dynamic> getTokenData(){
-    return tokenData;
-}
-  Future<void> _getToken() async{
-    List<String> creds = await _authent();
-    final resp = await post(Uri.parse('https://api.intra.42.fr/oauth/token'), body: {"grant_type": "client_credentials", "client_id":creds[0], "client_secret": creds[1]});
-    // this.authorized = true;
-    // print(this.authorized);
-    // print(String.fromEnvironment('CLIENT_ID'));
-    // var token_string='{"access_token":"385ddc01345b37cbdfcb9fc5102c04ec38253065a64157151d123de6ebc9b4b8","token_type":"bearer","expires_in":7200,"scope":"public","created_at":1790702845,"secret_valid_until":1790786753}';
-    // tokenData='{"token": "aaaccc1111", "valid_until": "4352", "created_at" : "354643632"}';
-    // tokenData = jsonDecode(token_string);
-    tokenData = jsonDecode(resp.body);
-    // print(resp.body);
-    print('new_token');
-    print(tokenData.runtimeType);
-    print(tokenData["access_token"]);
+//   Map<String, dynamic> getTokenData(){
+//     return tokenData;
+// }
+
+  String getToken(){
+    if (_tokenData.containsKey("access_token"))
+        return _tokenData["access_token"];
+    return "";
+  }
+
+
+  Future<int> _fetchToken(String clientId, String clientSecret) async{
+    // List<String> creds = await _loadCreds();
+    // print("creds $creds");
+    try {
+      final resp = await post(Uri.parse('https://api.intra.42.fr/oauth/token'),
+          body: {
+            "grant_type": "client_credentials",
+            "client_id": clientId,
+            "client_secret": clientSecret
+          });
+      print(resp.statusCode);
+      if (resp.statusCode == 200) {
+        _tokenData = jsonDecode(resp.body);
+        _tokenData["received_at"] = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        print("token data after fetching $_tokenData");
+        await storeToken(jsonEncode(_tokenData));
+      }
+      return resp.statusCode;
+      print(resp.body);
+      print(resp.statusCode);
+    }
+    catch(e)
+    {
+      return 0;
+    }
+
+    print('token fetched');
+    print(_tokenData.runtimeType);
+    print(_tokenData["access_token"]);
     // var createdAt = tokenData["created_at"];
     // dummy value while internet outage
     // print("testing token string: ${tokenData}");
-    await storeToken(resp.body);
+
     // await readToken();
 
   }
@@ -72,6 +95,7 @@ class AuthService {
   }
 
   Future <void> clearToken() async{
+    _tokenData = {};
     await _storage.delete(key: "tokenData");
   }
 
@@ -124,13 +148,10 @@ class AuthService {
   Future<Map<String, dynamic>> readToken() async{
     // TODO: add error handling
     try {
-    //   print("opening file: ${filePath}");
-    //   final file = File(filePath);
-    // final text = await file.readAsString();
-    //   print("text $text");
       String? rawData = await _storage.read(key: "tokenData");
-      if (rawData == null)
+      if (rawData == null) {
         throw Exception("token data null");
+      }
     final data = jsonDecode(rawData!);
       print("text after extraction $data");
     DateTime createdAt = DateTime.fromMicrosecondsSinceEpoch(data["created_at"] * 1000);
@@ -149,57 +170,57 @@ class AuthService {
   // }
 
   bool tokenExpired(Map<String, dynamic> data){
-    DateTime createdAt = DateTime.fromMillisecondsSinceEpoch(data["created_at"] * 1000);
-    DateTime expiresAt = createdAt.add(Duration(seconds: data["expires_in"]));
-    print("token created at ${createdAt.toString()}");
+    DateTime receivedAt = DateTime.fromMillisecondsSinceEpoch(data["received_at"] * 1000);
+    DateTime expiresAt = receivedAt.add(Duration(seconds: data["expires_in"]));
+    print("token created at ${receivedAt.toString()}");
     expiresAt = expiresAt.subtract(Duration(minutes: 1));
-    print("data ${data}");
+    print("token data ${data}");
     print("token expires at ${expiresAt.toString()}");
     DateTime now = DateTime.now();
     print("now is ${now.toString()}");
     return (now.isAfter(expiresAt));
   }
 
-  Future<List<String>> _authent() async{
+  Future<List<String>> _readCreds() async{
     List<String> creds = await readCredentials();
     if (creds.isEmpty) {
+      print("throwing");
       throw NoCredsException;
-      // creds = [
-      //   const String.fromEnvironment("CLIENT_ID"),
-      //   const String.fromEnvironment("CLIENT_SECRET")
-      // ];
-      await storeCredentials(creds[0], creds[1]);
     }
+    // creds = [
+    //   const String.fromEnvironment("CLIENT_ID"),
+    //   const String.fromEnvironment("CLIENT_SECRET")
+    // ];
+    // await storeCredentials(creds[0], creds[1]);
     return creds;
   }
 
-  Future <void> input(String clientId, String clientSecret) async {
-   storeCredentials(clientId, clientSecret);
-    print("id $clientId");
-    print("secret $clientSecret");
+  Future<int> authenticate(String clientId, String clientSecret) async {
+    int status = await _fetchToken(clientId, clientSecret);
+    if (status == 200)
+      await storeCredentials(clientId, clientSecret);
+   print("id $clientId");
+   print("secret $clientSecret");
+   return status;
   }
 
-  Future<void> authorize () async {
-    if (tokenData.isEmpty){
-      tokenData = await readToken();
-      print("token data is retrieved from file");
-      print(tokenData);
+  Future<int> loadTokenData() async {
+    int status = 200;
+    if (_tokenData.isEmpty){
+      _tokenData = await readToken();
     }
-    print("token data is: ${tokenData}");
-    if (tokenData.isEmpty || tokenExpired(tokenData)){
-      print("getting token from website");
-      // print("no token");|| tokenExpired()
-      await _getToken();
-      print("authorization succeeded");
+    if (_tokenData.isEmpty || tokenExpired(_tokenData)){
+      print("getting token from API");
+      List<String> creds = await _readCreds();
+      status = await _fetchToken(creds[0], creds[1]);
+      if (status == 429){
+        await Future.delayed(Duration(seconds: 1));
+        status = await _fetchToken(creds[0], creds[1]);
+      }
     }
-    // print(this.authorized);
-    this.authorized = true;
-    print("authorized");
-
+    print("token data is: ${_tokenData}");
+    return status;
   }
-  // bool tokenExpired(){
-  //   return true;
-  // }
 
   bool getAuthorized()
   {

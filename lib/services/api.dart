@@ -1,14 +1,14 @@
-import 'package:swifty/oauth.dart';
+import 'package:swifty/services/oauth.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart';
-import 'package:swifty/exceptions.dart';
+import 'package:swifty/common/exceptions.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/material.dart';
 import 'package:swifty/utils/utils.dart';
 import 'package:swifty/utils/urls.dart';
 import 'package:swifty/utils/network.dart';
-import 'package:swifty/utils/constants.dart';
+import 'package:swifty/common/constants.dart';
 
 // Future<Map<String, dynamic>> loadJson() async {
 //   final text = await rootBundle.loadString('assets/test.json');
@@ -31,8 +31,12 @@ class Api42{
   Map<String,String> links = {"first":"", "prev" : "", "next" : "", "last": ""};
   dynamic test = [];
   Map<String, dynamic> student = {};
-  String errorStatus = "";
+  String _errorMsg = "";
+  int? _statusCode;
+  int? _tokenStatus;
 
+  int? getStatusCode(){return _statusCode;}
+  String getErrorMsg(){return _errorMsg;}
   void clearLinks() {
     links = {"first":"", "prev" : "", "next" : "", "last": ""};
   }
@@ -72,7 +76,7 @@ class Api42{
 
     print("url $url");
     print("we got students");
-    List<dynamic> students = await fetchData(url, type);//TODO error handling
+    List<dynamic> students = await _fetchData(url, type);//TODO error handling
     return students;
     // print("students in api ${students.toString()}");
   }
@@ -100,7 +104,7 @@ class Api42{
 
   Future<List<dynamic>> fetchCampuses() async {
     String url = "https://api.intra.42.fr/v2/campus?per_page=100";
-    List<dynamic> campuses = await fetchData(url, null);//TODO error handling
+    List<dynamic> campuses = await _fetchData(url, null);//TODO error handling
     return campuses;
   }
 
@@ -112,7 +116,7 @@ class Api42{
 
     String url = "https://api.intra.42.fr/v2/projects/21";
     // print(url);
-    test = await fetchData(url, null); //TODO error handling
+    test = await _fetchData(url, null); //TODO error handling
     // print("test: ${test.toString()}");
     test.forEach((entry) => {print('entry: $entry')});
     // print(test.toString());
@@ -122,7 +126,10 @@ class Api42{
     String url = addToUrl('https://api.intra.42.fr/v2/users', '', id);
     // String url = "https://api.intra.42.fr/v2/skills";
     print(url);
-    final student = await fetchData(url, null); //TODO error handling
+    final student = await _fetchData(url, null); //TODO error handling
+    print("studenttt $student");
+    if (student == [])
+      return {};
     return student;
     // print("test: ");
     // print(test.toString());
@@ -132,54 +139,69 @@ class Api42{
 // getActual
 //gets any data
 //   Todo: ensure token is active
-  Future<dynamic> fetchData(String urlString, String? getLink) async {
+  Future<dynamic> _fetchData(String urlString, String? getLink) async {
     String? link = "";
-    print("getting data: $getLink");
-    var token = authService.getTokenData()["access_token"];
-    if (token == null || authService.tokenExpired(authService.tokenData)) {
-      await authService.authorize();
-      token = authService.getTokenData()["access_token"];
+    // int status;
+    var token;
+    Response resp;
+
+    //getting token
+
+    _tokenStatus = await authService.loadTokenData();
+    print("token status $_tokenStatus");
+    if (_tokenStatus != 200)
+      return [];
+    token = authService.getToken();
+    try
+    {
+      // if (getLink == null)
+      //   token = "";
+      //fetching data
+      resp = await get(
+          Uri.parse(urlString),
+          headers: {"Authorization": "Bearer $token"});
+      _statusCode = resp.statusCode;
+      if (_statusCode == 429) {
+        await Future.delayed(Duration(seconds: 1));
+        resp = await get(
+            Uri.parse(urlString),
+            headers: {"Authorization": "Bearer $token"});
+      }
+      print("status: ${_statusCode}");
+      if (_statusCode != 200) {
+        _errorMsg = resp.headers["status"]!;
+        print("error: ${_errorMsg}");
+        // if (_statusCode == 401)
+        return [];
+      }
+      dynamic data = json.decode(resp.body);
+      link = resp.headers["link"];
+      if (getLink != null && link != null) {
+        parseHeaders(link, getLink, links);
+        print("scroll type $getLink");
+        print("raw links: $link");
+        print("links: $links");
+      }
+      print("we got data");
+      return data;
     }
-    Response resp = await get(
-        Uri.parse(urlString),
-        headers: {"Authorization": "Bearer $token"});
-    // print("resp ${resp.body.toString()}");
-    final status = getStatus(resp.headers);
-
-    if (status != 200) {
-      errorStatus = resp.headers["status"]!;
-      print("status: ${status}");
-      print("error: ${errorStatus}");
-      if (status == 401)
-
+    catch(e)
+    {
+      print("error");
       return [];
     }
+    // print("resp ${resp.body.toString()}");
 
-    print("status: ${status}");
-    // print("headers: ${resp.headers.toString().substring(100)}");
-    dynamic data = await json.decode(resp.body);
-    link = resp.headers["link"];
-    // print("just: $links");
-    // if (getLink == false && link != null)
-    //   print("false: $links");
-    if (getLink != null && link != null) {
-      parseHeaders(link, getLink, links);
-      print("scroll type $getLink");
-      print("raw links: $link");
-      print("links: $links");
-    }
 
-    // print("headers: ${resp.headers["link"]}");
-    print("we got data");
-    // print("data ${data.toString()}");
-    return data;
+
+
   }
 
-  int getStatus(Map<String, String> headers){
-    String statusString = headers["status"]!.substring(0, 3);
-    int status = int.parse(statusString) ;
-    return status;
-  }
+  // int getStatus(Map<String, String> headers){
+  //   String statusString = headers["status"]!.substring(0, 3);
+  //   int status = int.parse(statusString) ;
+  //   return status;
+  // }
 
   // Future<dynamic> getStats(id) async{
   //
@@ -199,7 +221,7 @@ class Api42{
   }
 
   Image fetchNetImage(String url, {double width = 0, double height = 0}){
-    var token = authService.getTokenData()["access_token"];
+    var token = authService.getToken();
     Image image;
     if (width == 0){
       image = Image.network(url, headers: {"Authorization": "Bearer $token"},
@@ -219,7 +241,7 @@ class Api42{
   }
 
 String getErrorStatus() {
-    return errorStatus;
+    return _errorMsg;
   }
 }
 

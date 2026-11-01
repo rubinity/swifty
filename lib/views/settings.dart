@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:swifty/utils/widgets.dart';
-import 'oauth.dart';
-import 'prefs.dart';
-import 'api.dart' as api;
-import 'styles.dart';
-import 'package:swifty/utils/constants.dart';
+import '../services/oauth.dart';
+import '../services/prefs.dart';
+import '../services/api.dart' as api;
+import 'package:swifty/common/constants.dart';
 
 class Settings extends StatefulWidget {
   Settings({super.key, required this.authService});
@@ -15,37 +14,39 @@ class Settings extends StatefulWidget {
 }
 
 class _SettingsState extends State<Settings> {
-  String clientId = "";
-  String clientSecret = "";
+  // String clientId = "";
+  // String clientSecret = "";
   final _settingsKey = GlobalKey<FormState>();
-  bool _clearCampuses = true;
-  bool _clearCreds = true;
-  bool _clearToken = true;
-  bool _checkAll = true;
+  bool _clearCampuses = false;
+  bool _clearCreds = false;
+  bool _clearToken = false;
+  bool _checkAll = false;
 
   Future<void> clear() async {
     if (_clearCampuses == true)
       await Prefs.clearCampuses();
-    if (_clearToken = true)
+    if (_clearToken == true)
       await widget.authService.clearToken();
-    if (_clearCreds = true)
+    if (_clearCreds == true)
       await widget.authService.clearCredentials();
   }
 
   void checkUncheck(bool checkAll){
-  if (checkAll == true) {
-    _clearCampuses = true;
-    _clearCreds = true;
-    _clearToken = true;
-  }
-  else if (_checkAll == false){
-    _clearCampuses = false;
-    _clearCreds = false;
-    _clearToken = false;
-  }
+
   setState(() {
+    if (checkAll == true) {
+      _clearCampuses = true;
+      _clearCreds = true;
+      _clearToken = true;
+    }
+    else if (_checkAll == false){
+      _clearCampuses = false;
+      _clearCreds = false;
+      _clearToken = false;
+    }
 
   });
+
   }
   @override
   Widget build(BuildContext context) {
@@ -61,7 +62,6 @@ class _SettingsState extends State<Settings> {
         RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
             side: BorderSide(color: turquoise, width: 5)),
-        // color: bgColor,
         child: Form(
           key: _settingsKey,
           child: Column(
@@ -71,7 +71,7 @@ class _SettingsState extends State<Settings> {
               SizedBox(height: 8,),
               Text("Clear", style: TextStyle(fontSize: 18),),
               CheckboxListTile(value: _checkAll, checkColor: Colors.black, activeColor: Colors.white ,
-                  title: Text("Select all"),
+                  title: Text("Check/uncheck all"),
                   fillColor: WidgetStatePropertyAll(Colors.white),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(1)),
                   onChanged: (value){setState(() {
@@ -102,7 +102,8 @@ class _SettingsState extends State<Settings> {
                       _clearCreds = value;
                     else
                       _clearCreds = false;
-                  });}),
+
+                  });print(_clearCreds);}),
 
          CheckboxListTile(value: _clearToken, checkColor: Colors.black, activeColor: Colors.white ,
              title: Text("Clear token"),
@@ -116,29 +117,32 @@ class _SettingsState extends State<Settings> {
                     });}),
 
               FilledButton(onPressed: () async {
+                print("camp $_clearCampuses");
+                print("creds $_clearCreds");
+                print("tok $_clearToken");
                 await clear();
               }, child: Text('Clear'),
                ),
               SizedBox(height: 8),
-              CheckboxListTile(value: _clearToken, checkColor: Colors.black, activeColor: Colors.white ,
-                  title: Text("Clear token"),
-                  fillColor: WidgetStatePropertyAll(Colors.white),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(1)),
-                  onChanged: (value){setState(() {
-                    if (value != null)
-                      _clearToken = value;
-                    else
-                      _clearToken = false;
-                  });}),
-              SizedBox(height: 8),
+              // CheckboxListTile(value: _clearToken, checkColor: Colors.black, activeColor: Colors.white ,
+              //     title: Text("Clear token"),
+              //     fillColor: WidgetStatePropertyAll(Colors.white),
+              //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(1)),
+              //     onChanged: (value){setState(() {
+              //       if (value != null)
+              //         _clearToken = value;
+              //       else
+              //         _clearToken = false;
+              //     });}),
+              // SizedBox(height: 8),
 
               //todo delete later
-              FilledButton(onPressed: () async {
-                var c = await Prefs.loadCampuses();
-                print("loaded campuses $c");
-                }, child: Text('Print campuses'),
-              ),
-              SizedBox(height: 8),
+              // FilledButton(onPressed: () async {
+              //   var c = await Prefs.loadCampuses();
+              //   print("loaded campuses $c");
+              //   }, child: Text('Print campuses'),
+              // ),
+              // SizedBox(height: 8),
               // TextButton(onPressed: () async {
               //   await widget.authService.clearCredentials();
               // }, child: Text('Clear credentials'),

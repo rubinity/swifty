@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:swifty/signin.dart';
-import 'package:swifty/oauth.dart';
+import 'package:swifty/views/signin.dart';
+import 'package:swifty/services/oauth.dart';
 // import 'package:flutter/services.dart';
-import 'api.dart';
+import 'services/api.dart';
 import 'utils/widgets.dart' as w;
-import 'page.dart';
-import 'prefs.dart';
-import 'student_list.dart';
-import 'student.dart';
-import 'signin.dart';
-import 'settings.dart';
+import 'views/page.dart';
+import 'services/prefs.dart';
+import 'views/student_list.dart';
+import 'views/student.dart';
+import 'views/signin.dart';
+import 'views/settings.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:swifty/utils/constants.dart';
+import 'package:swifty/common/constants.dart';
 
 late final String appPath;
 enum customColors{ blue, black}

@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:developer';
 import 'student_list.dart';
-import 'utils/widgets.dart';
-import 'utils/utils.dart';
+import '../utils/widgets.dart';
+import '../utils/utils.dart';
 
 
 
