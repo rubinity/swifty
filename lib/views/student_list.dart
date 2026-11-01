@@ -9,8 +9,6 @@ import 'package:swifty/common/constants.dart';
 import "../common/exceptions.dart";
 import 'package:easy_debounce/easy_debounce.dart';
 
-const int defaultPerPage = 10;
-
 class StudentList extends StatefulWidget{
   const StudentList({super.key, required this.api});
   final Api42 api;
@@ -38,7 +36,7 @@ class _StudentList extends State<StudentList>{
   List<Map<String, dynamic>> _campusList = [];
   final Map<String, String> _params = {"page": "1", "per_page": defaultPerPage.toString() };
   final List<bool> _expandedFilter = [false];
-  final Map<String, dynamic> _p = {"top": 1, "bottom": 1, "top_trimmed":false, "bottom_trimmed": false, "max": 1000, "per_page": defaultPerPage};
+  final Map<String, dynamic> _p = {"top": 1, "bottom": 1, "top_trimmed":false, "bottom_trimmed": false, "per_page": defaultPerPage};
   String _validationMsg = "";
 
   Future<void> _getStudent(int id) async {
@@ -234,7 +232,7 @@ class _StudentList extends State<StudentList>{
       _jumpNeeded = true;
     }
     else if(type == "next") {
-      if ((length + new_students.length) > _p["max"]) {
+      if ((length + new_students.length) > maxItems) {
         _nextTrimInProgress = true;
         _jumpNeeded = true;
         _students = new_students;
@@ -254,7 +252,7 @@ class _StudentList extends State<StudentList>{
     }
     updatePagination(type, params);
     length = _students.length;
-    if (length > _p["max"] || _nextTrimInProgress == true) {
+    if (length > maxItems || _nextTrimInProgress == true) {
       studentsTrim(type, params["per_page"]);
     }
 

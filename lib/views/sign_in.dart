@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:swifty/utils/widgets.dart';
 import '../services/oauth.dart';
+import '../common/constants.dart';
 
 class SignIn extends StatefulWidget {
   SignIn({super.key, required this.authService});
@@ -102,7 +103,7 @@ class _SignInState extends State<SignIn> {
               if (_errorMsg.isNotEmpty)
                 Row(mainAxisAlignment: MainAxisAlignment.spaceBetween , children: [
                 Expanded(child: Text(_errorMsg,
-                  style: TextStyle(height: 1.0, fontSize: 16, color: Colors.red),
+                  style: TextStyle(height: 1.0, fontSize: 16, color: red),
                 )),]),
               FilledButton(onPressed: () async {
                 setState(() {

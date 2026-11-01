@@ -2,15 +2,12 @@ import 'package:flutter/material.dart';
 
 void goToPage(context, route){
   if (ModalRoute.of(context)?.isCurrent != true) {
-    print("double click");
     return;
   }
   bool routeFound = false;
   String? curRoute = ModalRoute.of(context)?.settings.name;
   var nav = Navigator.of(context);
   nav.pop();//pop menu
-    print("current route $curRoute");
-  print("we need route $route");
   if (curRoute == route)
     return;
   if (route == "/") {
@@ -31,18 +28,6 @@ void goToPage(context, route){
   if (!routeFound)
     nav.pushNamed(route);
 }
-
-  // else
-
-
-// List<DropdownMenuItem<dynamic>> campusMenu(List<dynamic> camp){
-//   var list = [DropdownMenuItem<dynamic>(child: Text("all"), value: -1)];
-//   var campuses = camp.map((option)=>
-//     DropdownMenuItem<dynamic>(child: Text(option["name"]), value: option["id"],)
-//   ).toList();
-//   list.addAll(campuses);
-//   return list;
-// }
 
 List<DropdownMenuEntry<int>> campusMenu(List<dynamic> camp){
   List<DropdownMenuEntry<int>> list = [];

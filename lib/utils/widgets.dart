@@ -16,45 +16,6 @@ class _TitleState extends State<MainTitle> {
   }
 }
 
-// class OutlinedText extends StatelessWidget {
-//   const OutlinedText({super.key, required this.text, required this.font, this.fontWeight = FontWeight.bold});
-//   final String text;
-//   final double font;
-//   final FontWeight fontWeight;
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Stack(
-//         children: [Text(text,
-//           textAlign: TextAlign.center,
-//           style: TextStyle(fontSize: font,
-//             fontFamily:  "futura-pt",
-//             fontFamilyFallback:['Noto Sans', 'Arial', 'Helvetica', 'Sans serif'],
-//             // color: Colors.white,
-//             // backgroundColor: Colors.black38,
-//             fontWeight: fontWeight,
-//             foreground: Paint()
-//               ..style = PaintingStyle.stroke
-//               ..strokeWidth = 2
-//               ..color = turquoise,
-//             // shadows: [Shadow(color: turquoise, blurRadius: 10)],
-//           ),
-//         ),
-//           Text(text,
-//             textAlign: TextAlign.center,
-//             style: TextStyle(fontSize: font,
-//               fontFamily:  "futura-pt",
-//               fontFamilyFallback:['Noto Sans', 'Arial', 'Helvetica', 'Sans serif'],
-//               color: Colors.white,
-//               // backgroundColor: Colors.black38,
-//               fontWeight: fontWeight,
-//               // shadows: [Shadow(color: turquoise, blurRadius: 10)],
-//             ),
-//           ),]
-//     );
-//   }
-// }
-
 class BorderedContainer extends StatelessWidget {
   const BorderedContainer({super.key, required this.child, required this.bgColor,
   this.sideMargin = 10, this.topMargin = 0});

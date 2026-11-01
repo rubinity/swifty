@@ -11,10 +11,6 @@ class NoScrollException implements Exception {
   final String type;
   NoScrollException(this.type, [this.message = "no_scroll"]);
 
-  // String getType(){
-  //   return(type);
-  // }
-
   @override
   String toString() => "NoCredsException: $message";
 }

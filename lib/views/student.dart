@@ -102,13 +102,13 @@ class _StudentViewState extends State<StudentView> {
       if (_primaryCampusId != 0){
         _campus = getCampus(student["campus"], _primaryCampusId);
         _cursus42 = getCursus(student["cursus_users"]);
-        print("skills ${_cursus42["skills"]}");
+        // print("skills ${_cursus42["skills"]}");
         if (_cursus42["skills"] != null) {
           _skills = _cursus42["skills"];
         }
         _projects = student["projects_users"];
 
-        print("projects ${student["projects_users"].toString()}");
+        // print("projects ${student["projects_users"].toString()}");
         if (student["campus"].length > 1) {
           _secret = getStudentSecret(student["campus"]);
         }
@@ -121,7 +121,6 @@ class _StudentViewState extends State<StudentView> {
   Widget build(BuildContext context) {
     final args = widget.args;
     student = args["data"];
-    print("data $student");
 
     if (student.isEmpty)
       return const Center(child: CircularProgressIndicator());
@@ -231,7 +230,7 @@ class _StudentViewState extends State<StudentView> {
                               {
                                 Color color = Colors.black;
                                 if (project["validated?"] == false)
-                                  color = Colors.red;
+                                  color = red;
                                 return Text("${project["project"]["name"]}",
                                     style: TextStyle(color: color));
                                 }
