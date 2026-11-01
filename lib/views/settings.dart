@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:swifty/utils/widgets.dart';
 import '../services/oauth.dart';
 import '../services/prefs.dart';
-import '../services/api.dart' as api;
 import 'package:swifty/common/constants.dart';
 
 class Settings extends StatefulWidget {

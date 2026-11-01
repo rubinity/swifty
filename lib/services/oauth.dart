@@ -107,14 +107,6 @@ class AuthService {
     return[];
   }
 
-  // Future<void> storeData(String key, String value) async{
-  //   await _storage.write(key: key, value: value);
-  // }
-  //
-  // Future<String?> readData(String key) async{
-  //   return await _storage.read(key: "data");
-  // }
-  //
   Future<void> storeToken(String data) async{
     // TODO: add error handling
 

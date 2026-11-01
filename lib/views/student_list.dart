@@ -1,15 +1,10 @@
-import 'dart:convert';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:json_annotation/json_annotation.dart';
 import 'package:swifty/utils/utils.dart';
-import 'student.dart';
 import '../utils/widgets.dart';
 import '../services/api.dart';
 import '../services/prefs.dart';
-import 'package:swifty/services/oauth.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:swifty/common/constants.dart';
 import "../common/exceptions.dart";
 import 'package:easy_debounce/easy_debounce.dart';
@@ -21,22 +16,13 @@ class StudentList extends StatefulWidget{
   final Api42 api;
   @override
   State<StudentList> createState() => _StudentList();
-
 }
 
 class _StudentList extends State<StudentList>{
 
   List<dynamic> _students = [];
-final _formKey = GlobalKey<FormState>();
-// String poolYear = "all";
-//   String poolMonth = "all";
-//   String filterPage = "Page number";
-//   String? filterPerPage;
-//   String loginSearch = "Login Search";
-  // Map<String, String> links = {};
-  final GlobalKey _firstTileKey = GlobalKey();
+  final _formKey = GlobalKey<FormState>();
   bool currentTrim = false;
-  bool loginNotFound = false;
   bool _isSearch = false;
   double _controllerJump = 0;
   bool _jumpNeeded = false;
@@ -50,72 +36,51 @@ final _formKey = GlobalKey<FormState>();
   final TextEditingController _yearController = TextEditingController();
   int _campus = -1;
   List<Map<String, dynamic>> _campusList = [];
-  Map<String, String> params = {"page": "1", "per_page": defaultPerPage.toString() };
-  // Map<String,String> p = {};
-  List<bool> _expandedFilter = [false];
-  String _poolYear = "all";
-  Map<String, dynamic> p = {"top": 1, "bottom": 1, "top_trimmed":false, "bottom_trimmed": false, "max": 1000, "per_page": defaultPerPage};
+  final Map<String, String> _params = {"page": "1", "per_page": defaultPerPage.toString() };
+  final List<bool> _expandedFilter = [false];
+  final Map<String, dynamic> _p = {"top": 1, "bottom": 1, "top_trimmed":false, "bottom_trimmed": false, "max": 1000, "per_page": defaultPerPage};
   String _validationMsg = "";
-  // void saveParams
 
   Future<void> _getStudent(int id) async {
-    // _api.getTest(0);
     try {
-      print("check student $_curStudent");
       _curStudent = await _api.fetchStudent(id);
-      print("check student $_curStudent");
       if (_api.getStatusCode() != 200) {
-        print("not 200");
-        showSnack(context,
-            "Could not get student data, please check your credentials or restart the app later. ${_api
+        popErr("Could not get student data, please check your credentials or restart the app later. ${_api
                 .getErrorMsg()}");
         return;
       }
     }
     catch(e){
-    if (e == NoCredsException)
-    {
-      print("need to authent");
+    if (e == NoCredsException) {
+      // print("no creds is caught");
       dynamic result = await Navigator.pushNamed(context, "/auth");
-      print("id ${result["clientId"]}");
-      print("secret ${result["clientSecret"]}");
-      print("st closed");
       return;
     }
-    else
-    {
-      // print("error in student get: $e");
-
-      showSnack(context,
+    else {
+      popErr(
       "Could not get the student data, please check your credentials or restart the app later. ${_api
       .getErrorMsg()}");
       return;
-    }
-    }
-
-    if (!mounted)
-      return;
+    }}
   }
   
   void _openStudent(int id) async{
     if (ModalRoute.of(context)?.isCurrent != true) {
-      print("double click student");
       return;
     }
     await _getStudent(id);
     if (ModalRoute.of(context)?.isCurrent != true) {
-      print("double click after await");
       return;
     }
     Navigator.pushNamed(context, "/student", arguments: {'data': _curStudent , 'api': _api});
   }
 
   void clearPagination(){
-    p["top"] = 1;
-    p["bottom"] = 1;
-    p["top_trimmed"] = false;
-    p["bottom_trimmed"] = false;
-    p["per_page"] = defaultPerPage;
+    _p["top"] = 1;
+    _p["bottom"] = 1;
+    _p["top_trimmed"] = false;
+    _p["bottom_trimmed"] = false;
+    _p["per_page"] = defaultPerPage;
   }
 //take perPage from params or the default
   int getPerPage(String? perPageParam){
@@ -128,23 +93,14 @@ final _formKey = GlobalKey<FormState>();
   void studentsTrim(String type, String? perPage){
     int pP;
     if(perPage == null)
-      pP = p["per_page"];
+      pP = _p["per_page"];
     else
       pP = int.parse(perPage);
     if (type == "next") {
-      // _students.removeRange(0, pP);
-      p["top"] = p["bottom"];
-      print("trying to trim top, current top page: ${p["top"]} ... ${(p["top"] - 1)}");
-      _api.updateLink("prev", (p["top"] - 1).toString());
-      print("length after trimming ${_students.length}");
-      // p["top"] += 1;
-      p["top_trimmed"] = true;
-      print("trimmed ${p.toString()}");
-      // _controllerJump = -pP * 36;
-      // _controllerOffset = _controller.offset;
+      _p["top"] = _p["bottom"];
+      _api.updateLink("prev", (_p["top"] - 1).toString());
+      _p["top_trimmed"] = true;
       currentTrim = true;
-      // print("compare to trim ${_controller.position.pixels}, ${_controller.offset}");
-
     }
     else if (type == "prev") {
       int end = _students.length;
@@ -153,11 +109,9 @@ final _formKey = GlobalKey<FormState>();
         _tail = 0;
       }
       _students.removeRange(end - pP, end);
-      print("trying to trim bottom, current bottom page: ${p["bottom"]}");
-      _api.updateLink("next", p["bottom"].toString());
-      p["bottom"] -= 1;//todo don't forget to fill this field
-      p["bottom_trimmed"] = true;
-      print("trimmed ${p.toString()}");
+      _api.updateLink("next", _p["bottom"].toString());
+      _p["bottom"] -= 1;//todo don't forget to fill this field
+      _p["bottom_trimmed"] = true;
     }
 
   }
@@ -165,16 +119,25 @@ final _formKey = GlobalKey<FormState>();
   void _search(String value) {
     if (value.isNotEmpty) {
         _isSearch = true;
-      params["range_login"] = value;
-      _getList("current", params);
+      _params["range_login"] = value;
+      _getList("current", _params);
     }
     else {
       _isSearch = false;
-      params.remove("range_login");
+      _params.remove("range_login");
       setState(() {
         _students = [];
       });
     }
+  }
+
+  void popErr(String text, [int duration = 60]){
+    bool showIcon = false;
+    if (duration > 3)
+      showIcon = true;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      showCloseIcon: showIcon, duration: Duration(seconds: duration),content: Padding(padding: EdgeInsets.symmetric(horizontal: 10), child: Text(text, style: TextStyle(color: Colors.black, height: 1.0))),
+      padding: EdgeInsets.all(0), backgroundColor: turquoise, ));
   }
 
 
@@ -186,7 +149,7 @@ final _formKey = GlobalKey<FormState>();
      try {
        await _fetchList(type, params);
        if (_api.getStatusCode() != 200) {
-         showSnack(context,
+         popErr(
              "Could not get student list, please check your credentials or restart the app later. ${_api
                  .getErrorMsg()}");
          return;
@@ -197,15 +160,12 @@ final _formKey = GlobalKey<FormState>();
        if (e is NoScrollException) // TODO: for testing
            {
          if (e.type == "next") {
-           p["bottom_trimmed"] = false;
+           _p["bottom_trimmed"] = false;
          }
        }
        else if (e == NoCredsException) {
-         dynamic result = await Navigator.pushNamed(context, "/auth");
+         await Navigator.pushNamed(context, "/auth");
          await _fetchList(type, params);
-         print("id ${result["clientId"]}");
-         print("secret ${result["clientSecret"]}");
-         print("list need to authent");
        }
        else {
 
@@ -214,17 +174,9 @@ final _formKey = GlobalKey<FormState>();
    if (!mounted)
      return;
    setState(() {
-     // if (fullLogin && _students.isEmpty) {
-     //   loginNotFound = true;
-     //   fullLogin = false;
-     // }
      if (_jumpNeeded) {
-       // _callbackNeeded = false
        WidgetsBinding.instance.addPostFrameCallback((_) {
-         // print("size: ${_firstTileKey.currentContext?.size?.height}");
          if (_controller.hasClients) {
-           print("has clients $_controllerOffset");
-           print("preparing to jump ${_controllerOffset}");
            _controller.jumpTo(_controllerOffset! + _controllerJump);
            _controllerJump = 0;
            currentTrim = false;
@@ -232,7 +184,6 @@ final _formKey = GlobalKey<FormState>();
        });
        _jumpNeeded = false;
      }
-
    });
   }
        finally {
@@ -243,94 +194,68 @@ final _formKey = GlobalKey<FormState>();
 
   void updatePagination(String type, Map<String,String> params){
     if (type == "current"){
-      p["top"] = int.parse(params["page"]!);
-      p["bottom"] = int.parse(params["page"]!);
-      p["per_page"] = getPerPage(params["per_page"]);
-      p["top_trimmed"] = false;
-      p["bottom_trimmed"] = false;
+      _p["top"] = int.parse(params["page"]!);
+      _p["bottom"] = int.parse(params["page"]!);
+      _p["per_page"] = getPerPage(params["per_page"]);
+      _p["top_trimmed"] = false;
+      _p["bottom_trimmed"] = false;
     }
     else if (type == "next"){
-      p["bottom"] += 1;
+      _p["bottom"] += 1;
     }
     else {
-      p["top"] -= 1;
+      _p["top"] -= 1;
     }
-    print("pagination after update ${p.toString()}");
-
-
   }
 
   bool isTop(){
-    return(p["top_trimmed"]);
+    return(_p["top_trimmed"]);
   }
 
   bool isBottom(){
-    return(p["top_trimmed"]);
+    return(_p["top_trimmed"]);
   }
 
   Future<void> _fetchList(String type, Map<String,String> params) async{
     int length = _students.length;
-    print("links from api ${_api.links}");
     bool _nextTrimInProgress = false;
     if (type == "current") {
       _tail = 0;
       _api.clearLinks();//todo add jump
   }
-
-    // var params = {"page": "1", "per_page" : "20", "pool_year": "2022", "pool_month" : "june"};
     _loading = true;
     var new_students = (await _api.fetchStudents(type, _campus, params: params));//later it might be better to use a variable instead of current
-    print("test");
-    if (new_students.length < p["per_page"] && _api.isLastPage())
+    if (new_students.length < _p["per_page"] && _api.isLastPage())
       _tail = new_students.length ;
-
-    print("checking new students ${new_students.length}");
-
     if (type == "current") {
       _students = new_students;
       _controllerJump = 0;
       _controllerOffset = 0;
       _jumpNeeded = true;
-      print("jump is planned ${_controllerOffset}");
-      print("length ${_students.length}");
     }
     else if(type == "next") {
-      // print("links after next ${_api.links}");
-      // if (_students.length + new_students.length > )
-      if ((length + new_students.length) > p["max"]) {
+      if ((length + new_students.length) > _p["max"]) {
         _nextTrimInProgress = true;
         _jumpNeeded = true;
         _students = new_students;
         _controllerJump = 0;
         _controllerOffset = 0;
-        // studentsTrim(type, params["per_page"]);
-        // print("links after next ${_api.links}");
       }
       else
         _students.addAll(new_students);
-      // if (_api.linkExists(type))
-      p["bottom_trimmed"] = false;
+      _p["bottom_trimmed"] = false;
     }
     else {
       _students.insertAll(0, new_students);
-      //check if the end
-      // if (_api.linkExists(type))
-      p["top_trimmed"] = false;
+      _p["top_trimmed"] = false;
         _jumpNeeded = true;
         _controllerJump = new_students.length * 36;
         _controllerOffset = _controller.position.pixels;
-        print("compare ${_controller.position.pixels}, ${_controller.offset}");
-        // _callbackNeeded = true;
-
     }
-
     updatePagination(type, params);
     length = _students.length;
-    print("length  ${length}, p max ${p["max"] }");
-    if (length > p["max"] || _nextTrimInProgress == true) {
-
+    if (length > _p["max"] || _nextTrimInProgress == true) {
       studentsTrim(type, params["per_page"]);
-      print("length after trimming 1 ${_students.length}");
     }
 
   }
@@ -352,14 +277,14 @@ final _formKey = GlobalKey<FormState>();
         _campusList = await fetchCampuses();
       }
       if (_campusList.isEmpty || _campusList.length == 1) {
-          showSnack(context, "Could not get campus list, please check your credentials or restart the app later. ${_api.getErrorMsg()}");
+          popErr("Could not get campus list, please check your credentials or restart the app later. ${_api.getErrorMsg()}");
           return;
       }
       await Prefs.saveCampuses(_campusList);
     }
     catch(e){
       if (e == NoCredsException) {
-        print("caught");
+        // print("caught no creds");
         dynamic result = await Navigator.pushNamed(context, "/auth");
         _campusList = await fetchCampuses();
         await Prefs.saveCampuses(_campusList);
@@ -384,61 +309,34 @@ final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
-    // TODO: implement initState
-    print("initiating state");
-    print("expanded before $_expandedFilter");
     super.initState();
-    // _controller.addListener(_onScroll);
     _api = widget.api;
-    print("starting getting the list");
     _students = [];
     Prefs.loadPrefs(_expandedFilter);
-    print("expanded after $_expandedFilter");
-    // expandedFilter = _api.authService
-    print("init params");
-
-    print(params.toString());
-    _getList("current", params);
-
-
-
+    _getList("current", _params);
   }
 
   @override
   void dispose() {
     Prefs.savePrefs(_expandedFilter[0]);
     _controller.dispose();
-    print("expanded before close $_expandedFilter");
     super.dispose();
   }
 
   void clearFilters(){
-    // _campus = -1;
-
-    params.remove("pool_year");
-    params.remove("pool_month");
-    params["page"] = "1";
-    params["per_page"] = defaultPerPage.toString();
-    // _poolYear = "all";
+    _params.remove("pool_year");
+    _params.remove("pool_month");
+    _params["page"] = "1";
+    _params["per_page"] = defaultPerPage.toString();
     _yearController.clear();
     _yearController.text = "all";
-    print("controlle after clear ${_yearController.text}");
-    print("params ${params}");
-    // filterPage = "Page number";
-    // filterPerPage = "Filter per page";
-    // loginSearch = "Login search";
-    print("campus $_campus");
-    print("campus ${_yearController.text}");
   }
-// @overr
 
   Future<void> refresh() async {
-    print("refreshing $params");
-    _getList("current", params);
+    _getList("current", _params);
   }
-  void _valMsgUpdate(String msg)
-  {
-    // if (_validationMsg.isEmpty)
+
+  void _valMsgUpdate(String msg) {
       _validationMsg += " $msg";
   }
 
@@ -448,16 +346,12 @@ final _formKey = GlobalKey<FormState>();
       return const Center(child: CircularProgressIndicator());
     }
 
-    // final screenWidth = MediaQuery.of(context).size.width;
-    // final padWidth = screenWidth * 0.01;
-    // print(["screen1", screenWidth]);
     return RefreshIndicator(
       onRefresh: refresh,
       child: Column(
         children: [
         Form(
           key: _formKey,
-          // onChanged: _saveParams(),
             child:
         BorderedContainer(
           sideMargin: 0,
@@ -471,11 +365,8 @@ final _formKey = GlobalKey<FormState>();
                 inputDecorationTheme: InputDecorationTheme(isDense: true,
                   border: OutlineInputBorder(),
                   constraints: const BoxConstraints(maxHeight: 40), // the key line
-                  // suffixIconConstraints: const BoxConstraints(minHeight: 0, minWidth: 0),
                 ),
                 textStyle: TextStyle(fontSize: 18, height: 1.0),
-                // itemHeight: 48,
-                // style: TextStyle(fontSize: 16, height: 1.0, color: Colors.black ),
                 onSelected: (value){ _campus = value!; print(_campus);},
             ),
 
@@ -486,8 +377,7 @@ final _formKey = GlobalKey<FormState>();
                       });
                      if (_formKey.currentState!.validate()) {
                        _formKey.currentState!.save();
-                       print("params ${params.toString()}");
-                       _getList("current", params);
+                       _getList("current", _params);
                      }
                       },
                     child: Text("Go", style: TextStyle(color: Colors.black, fontSize: 18),),
@@ -521,7 +411,6 @@ final _formKey = GlobalKey<FormState>();
                         return null;
                       if (value.isEmpty) {
                         _validationMsg = "Select or enter the value of the pool year.";
-                        // showSnack(context, "You must select or enter the value")
                         return "";
                       }
                       else {
@@ -532,25 +421,11 @@ final _formKey = GlobalKey<FormState>();
                         }
                         return null;
                       }},
-                      // onSelected: (value){
-                      //   // _yearController. = value!;
-                      //   print("selecting pool_year");
-                      //   // print("params ${params.toString()}");
-                      // if (value == "all")
-                      //   params.remove("pool_year");
-                      // else
-                      //   params["pool_year"] = _yearController.text;
-                      // print("params ${params.toString()}");
-                      //   print("p year ${_yearController.text}");
-                      // },
                       onSaved: (value){
                       if (_yearController.text == "all")
-                        params.remove("pool_year");
+                        _params.remove("pool_year");
                       else
-                        params["pool_year"] = _yearController.text;
-                      // else
-                      //   params.remove("pool_year");
-                      print("controlle ${_yearController.text}");
+                        _params["pool_year"] = _yearController.text;
                       },
                     )),
                     const SizedBox(width: 4,),
@@ -560,10 +435,9 @@ final _formKey = GlobalKey<FormState>();
                       initialSelection: "all",
                       onSelected: (value){
                         if (value == "all")
-                          params.remove("pool_month");
+                          _params.remove("pool_month");
                         else
-                          params["pool_month"] = value!;},
-                      // onSaved: (value){params["pool_month"] = value!;},
+                          _params["pool_month"] = value!;},
                     )),
                   ]),
                 ),
@@ -598,17 +472,8 @@ final _formKey = GlobalKey<FormState>();
                           return null;
                         },
                         onSaved: (value){
-                          // print("vvv ${value!.isEmpty}");
-                          // if (value != null && value.isNotEmpty)
-                            params["page"] = value!;
-                          // else
-                          //   params["page"] = "1";
+                            _params["page"] = value!;
                           },
-
-                        // onChanged: (value){
-                        //   // print("page number: ${value}");
-                        // },
-                        // initialValue: 1,
                       )),
                       const SizedBox(width: 20,),
                       Expanded(child: TextFormField(
@@ -620,24 +485,22 @@ final _formKey = GlobalKey<FormState>();
                           labelStyle: TextStyle(height: 1.0, fontSize: 16),
                         ),
                         onSaved: (value){
-                            params["per_page"] = value!;},
+                            _params["per_page"] = value!;},
                         initialValue: defaultPerPage.toString(),
                         validator: (value){
                       if (value == null || value.trim().isEmpty) {
-                      _valMsgUpdate("Items per page shouldn't be empty.");
-                      return "";
+                        _valMsgUpdate("Items per page shouldn't be empty.");
+                        return "";
                       }
                       else {
                       var val = int.tryParse(value.trim());
                       if (val == null || val < 1 || val > 100) {
-                      _valMsgUpdate("Items per page must be 1 through 100.");
+                       _valMsgUpdate("Items per page must be 1 through 100.");
                       return "";
-                      }
-                      }
-                      return null;
+                      }}
+                        return null;
                       },
                       )),
-                      // Expanded(child: TextField(keyboardType: TextInputType.datetime,)),
                     ]),
                   ),
                 ),
@@ -656,12 +519,7 @@ final _formKey = GlobalKey<FormState>();
                           labelText: "Login search", border: OutlineInputBorder(),
                           labelStyle: TextStyle(height: 1.0, fontSize: 18),
                         ),
-                        // onSaved: (value){
-                        //
-                        //   params["range_login"] = value!;
-                        //   },
                         onChanged: (value){EasyDebounce.debounce("search", Duration(milliseconds: 500), ()=>_search(value));
-
                         }
 
                       )
@@ -671,13 +529,9 @@ final _formKey = GlobalKey<FormState>();
                         child: FilledButton(onPressed: (){
                             clearFilters();
                             _formKey.currentState!.reset();
-                            print("params after reset $params");
-                            print("campus $_campus");
-
                         }, child: Text("Clear filters"),
                         ),
                       )
-                      // Expanded(child: TextField(keyboardType: TextInputType.datetime,)),
                     ]),
                   ),
                 ),
@@ -689,14 +543,6 @@ final _formKey = GlobalKey<FormState>();
                     child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween , children: [
                       Expanded(child: Text(_validationMsg,
                           style: TextStyle(height: 1.0, fontSize: 12, color: Colors.red),
-
-                          // onSaved: (value){
-                          //
-                          //   params["range_login"] = value!;
-                          //   },
-                          // onChanged:
-
-
                       )
                       ),
                     ]),
@@ -711,45 +557,25 @@ final _formKey = GlobalKey<FormState>();
             child: NotificationListener<ScrollNotification>(
 
               onNotification: (n) {
-                // print("check jump${_controllerJump!}");
-                var delta;
-                bool? scrollingUp;
                 if (n is ScrollStartNotification)
                   _dragTriggered = true;//drag started so true
-                // print("notif ${_dragTriggered}");
                 final atBottom = n.metrics.extentAfter < 1; // 0 when content is short
                 final atTop = n.metrics.extentBefore < 1;
                 if (_dragTriggered) {
-                  // print("isscr $isScrollish, atbottom $atBottom");
-                  // print("flag $_dragTriggered");
                   if ((n is OverscrollNotification && atBottom && n.overscroll > 0 )||(n is ScrollUpdateNotification && atBottom && n.scrollDelta! > 0)) {
                     if (!_jumpNeeded) {
-                        // _controllerJump = getPerPage(params["per_page"]) * -36;
-                        // _controllerOffset = n.metrics.pixels;
-                        // currentTrim = true;
-                        print("cur pos ${n.metrics.pixels}");
-
-
-                      print("next is triggered");
-                      print(params);
-                      // print("check jump${_controllerJump!}");
+                      // print("next is triggered");
                       if (n is ScrollUpdateNotification)
-                        print("delta ${n.scrollDelta!}");
                       _dragTriggered = false;
-                      _getList("next", params);
+                      _getList("next", _params);
                     }
                   }
                   else if ((n is OverscrollNotification && atTop && n.overscroll < 0 )||(n is ScrollUpdateNotification && atTop && n.scrollDelta! < 0)){
-                    // if (currentTrim)
                     _dragTriggered = false;
-                  print("prev is triggered");
-
-                    _getList("prev", params);
-
+                  // print("prev is triggered");
+                    _getList("prev", _params);
                   }
                 }
-                // if (n is OverscrollNotification)
-                //   print("notif ${n is OverscrollNotification}");
                 return false;
               },
 
@@ -758,41 +584,34 @@ final _formKey = GlobalKey<FormState>();
                 thumbVisibility: true,
                 child: (
                  ListView.builder(
-                   // itemExtent: 36,
                    physics: AlwaysScrollableScrollPhysics(),
                    controller: _controller,
-                   itemCount: (_isSearch && _students.length == 0) ? _students.length + 1 : _students.length,
+                   itemCount: (_isSearch && _students.isEmpty) ? _students.length + 1 : _students.length,
                      itemBuilder: (context, index) {
                        final textTheme = Theme.of(context).textTheme;
-                       // print("is full $_isSearch");
-                     if (_isSearch && _students.length == 0 && index == _students.length){
+                     if (_isSearch && _students.isEmpty && index == _students.length){
                        _isSearch = false;
                       return Container(padding: EdgeInsets.symmetric(horizontal: 15), child: Text("Login not found", style: TextStyle(fontSize: 18),),);
                      }
-                     else
-
-
-                       // print("cur index $index");
-                          return (Card(margin: EdgeInsets.fromLTRB(4, 4, 4, 4),
+                     else {
+                       return (Card(margin: EdgeInsets.fromLTRB(4, 4, 4, 4),
                            child: ListTile(
-
-                             // dense: true,
-                             leading: SizedBox(width: 25, child: _api.getImage(_students[index], "micro")),
+                             leading: SizedBox(width: 25,
+                                 child: _api.getImage(
+                                     _students[index], "micro")),
                              title: Text(_students[index]["login"]),
-                             // subtitle: Text(students[index]["login"]),
                              titleTextStyle: textTheme.titleMedium?.copyWith(
-                                 fontSize: 16, height: 1.0, fontWeight: FontWeight.bold),
-                             // subtitleTextStyle: textTheme.bodyMedium?.copyWith(height: 1.1),
-                             onTap: () => {_openStudent(_students[index]["id"]),},
+                                 fontSize: 16,
+                                 height: 1.0,
+                                 fontWeight: FontWeight.bold),
+                             onTap: () => {
+                               _openStudent(_students[index]["id"]),
+                             },
                              minTileHeight: 28,
                              minVerticalPadding: 2,
                              tileColor: turquoise,
-
-                             // contentPadding: EdgeInsets.all(1),
-
-                           )
-
-                       ));
+                           )));
+                     }
                      })),
               ),
             ),
@@ -800,53 +619,6 @@ final _formKey = GlobalKey<FormState>();
         ],
       ),
     );
-    // padding: EdgeInsets.symmetric(vertical: 4, horizontal: 2),
-    //  children: [
-    //
-    //     ... students.map((student)
-    //      => GestureDetector(
-    //        onTap: ()=>{openStudent(student["id"]),},
-    //        child: Container(
-    //            color: turquoise,
-    //            margin: EdgeInsets.all(4),
-    //            padding: EdgeInsets.fromLTRB(12, 2, 12, 2),
-    //        //     // constraints: BoxConstraints.loose(Size.fromHeight(100)) ,
-    //            child: Row(
-    //              children: [
-    //                Column(
-    //                  children: [
-    //                    api.getImage(student, "micro")
-    //                  ],
-    //                ),
-    //                Column(
-    //                  children: [
-    //                Row(
-    //                  children: [
-    //                    SizedBox(width: 10),
-    //                    Text(overflow: null, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold), textAlign: TextAlign.start, student["login"]
-    //                    ),
-    //                  ],
-    //                ),
-                   // Row(
-                   //   mainAxisAlignment: MainAxisAlignment.start,
-                   //   children: [
-                   //     SizedBox(width: 10),
-                   //     Text(style: TextStyle(fontSize: 10, color: Colors.white), textAlign: TextAlign.start, student["displayname"]
-                   //     ),
-                   //   ],
-                   // ),
-     //                 ]
-     //               )
-     //             ],
-     //           )
-     //       ),
-     //     )
-     //     ),
-     //   ],
-     // )
-
-
-    // );
   }
 
 }
