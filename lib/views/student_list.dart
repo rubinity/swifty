@@ -111,7 +111,6 @@ class _StudentList extends State<StudentList>{
       _p["bottom"] -= 1;//todo don't forget to fill this field
       _p["bottom_trimmed"] = true;
     }
-
   }
 
   void _search(String value) {
@@ -365,7 +364,7 @@ class _StudentList extends State<StudentList>{
                   constraints: const BoxConstraints(maxHeight: 40), // the key line
                 ),
                 textStyle: TextStyle(fontSize: 18, height: 1.0),
-                onSelected: (value){ _campus = value!; print(_campus);},
+                onSelected: (value){ _campus = value!;},
             ),
 
                 FilledButton(
@@ -375,6 +374,8 @@ class _StudentList extends State<StudentList>{
                       });
                      if (_formKey.currentState!.validate()) {
                        _formKey.currentState!.save();
+                       if (_params.keys.contains("range_login"))
+                         _isSearch = true;
                        _getList("current", _params);
                      }
                       },
@@ -591,7 +592,6 @@ class _StudentList extends State<StudentList>{
                      itemBuilder: (context, index) {
                        final textTheme = Theme.of(context).textTheme;
                      if (_isSearch && _students.isEmpty && index == _students.length){
-                       _isSearch = false;
                       return Container(padding: EdgeInsets.symmetric(horizontal: 15), child: Text("Login not found", style: TextStyle(fontSize: 18),),);
                      }
                      else {
