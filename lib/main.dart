@@ -1,34 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:swifty/views/signin.dart';
+import 'package:swifty/views/sign_in.dart';
 import 'package:swifty/services/oauth.dart';
-// import 'package:flutter/services.dart';
 import 'services/api.dart';
-import 'utils/widgets.dart' as w;
 import 'views/page.dart';
-import 'services/prefs.dart';
 import 'views/student_list.dart';
 import 'views/student.dart';
-import 'views/signin.dart';
 import 'views/settings.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:swifty/common/constants.dart';
 
-late final String appPath;
-enum customColors{ blue, black}
-
-Future<void> main()
-    async {
-      WidgetsFlutterBinding.ensureInitialized();
+void main()
+    {
       AuthService authService = AuthService();
-      appPath = (await getApplicationDocumentsDirectory()).path;
       Api42 api = Api42(authService: authService);
 
       runApp(
           MaterialApp(
       title: 'Swiftanion',
       theme: ThemeData(
-        // colorScheme: .fromSeed(seedColor: Colors.black),
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
             backgroundColor: turquoise,
@@ -43,33 +31,11 @@ Future<void> main()
           constraints: const BoxConstraints(maxHeight: 40),
         ),
       ),
-
-      // home: AppPage(title: 'Sign in', body: Sign in()),
-      // initialRoute: '/auth',
       routes: {
-        '/auth': (context) => AppPage(title: 'Sign in', body: SignIn(authService: authService)),
-        '/settings': (context) => AppPage(title: 'Settings', body: Settings(authService: authService)),
-        '/': (context) => AppPage(title: 'Students', body: StudentList(api: api)),
-        '/student': (context) => AppPage(title: 'Student', body: StudentView(api: api, args: ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>)),
+        '/auth': (context) => AppPage(title: 'Sign in', child: SignIn(authService: authService)),
+        '/settings': (context) => AppPage(title: 'Settings', child: Settings(authService: authService)),
+        '/': (context) => AppPage(title: 'Students', child: StudentList(api: api)),
+        '/student': (context) => AppPage(title: 'Student', child: StudentView(api: api, args: ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>)),
       },
-      // home: AppPage(title: 'Students', body: StudentList()),
     ));
     }
-
-
-
-// class MyApp extends StatelessWidget {
-//   const MyApp({super.key});
-//
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       title: 'Swiftanion',
-//       theme: ThemeData(
-//         colorScheme: .fromSeed(seedColor: Colors.black),
-//       ),
-//       home: const AppPage(title: 'User list', body: StudentList()),
-//     );
-//   }
-// }
