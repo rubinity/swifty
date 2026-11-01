@@ -111,8 +111,8 @@ class Api42{
             headers: {"Authorization": "Bearer $token"});
       }
       if (_statusCode != 200) {
-        _errorMsg = resp.headers["status"]!;
-        print("error: ${_errorMsg}");
+        _errorMsg = resp.headers["status"]??"";
+        // print("error: ${_errorMsg}");
         return [];
       }
       dynamic data = json.decode(resp.body);
@@ -134,7 +134,7 @@ class Api42{
   }
 
   Image getImage(data, type, {double width = 0, double height = 0}){
-    String? url = data["image"]["versions"][type];
+    String? url = data["image"]?["versions"]?[type];
     if (url != null){
         Image image = fetchNetImage(url, width: width, height: height);
         return image;

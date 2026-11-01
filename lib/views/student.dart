@@ -15,14 +15,13 @@ class StudentView extends StatefulWidget {
 }
 
 class _StudentViewState extends State<StudentView> {
-  late Map<String, dynamic>student = {};
   late Map<String, dynamic>_cursus42 = {};
   late List<dynamic> _skills = [];
   late List<dynamic> _projects = [];
   late String _campus = "";
   late int _primaryCampusId;
   late var _secret = [];
-  late String _poolTime;
+  late String _poolTime = "";
 
   // int printP(List<dynamic> projects){
   //   for (var p in projects){
@@ -57,23 +56,6 @@ class _StudentViewState extends State<StudentView> {
     return "";
   }
 
-
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-
-    student = widget.args["data"];
-    if (student.isEmpty)
-      return;
-    _poolTime = getPoolTime();
-    if (!mounted)
-      return;
-    setData(student);
-  }
-
-
   Map<String, dynamic> getCursus(List<dynamic> cursuses) {
     for (var cursus in cursuses){
       if (cursus["cursus_id"] == 21)//TODO add error handling
@@ -82,8 +64,8 @@ class _StudentViewState extends State<StudentView> {
     return {};
   }
 
-  String getPoolTime(){
-    return "${student["pool_month"]}.${student["pool_year"]}";
+  String getPoolTime(Map<String, dynamic> student){
+    return "${student["pool_month"]??""}.${student["pool_year"]??""}";
   }
 
   String levelRound(double level){
@@ -120,10 +102,9 @@ class _StudentViewState extends State<StudentView> {
   @override
   Widget build(BuildContext context) {
     final args = widget.args;
-    student = args["data"];
-
-    if (student.isEmpty)
-      return const Center(child: CircularProgressIndicator());
+    final Map<String, dynamic> student = args["data"];
+    _poolTime = getPoolTime(student);
+    setData(student);
     // printP(projects);
 
     return Align(
@@ -140,7 +121,7 @@ class _StudentViewState extends State<StudentView> {
                       padding: EdgeInsets.symmetric(horizontal: 6, vertical: 0.1),
                       margin: EdgeInsets.fromLTRB(0, 5, 0, 0),
                       child:
-                      Text("${student["displayname"]}",
+                      Text("${student["displayname"]??""}",
                           style:  TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold))
                     )),
               Align(
@@ -161,7 +142,7 @@ class _StudentViewState extends State<StudentView> {
                             bottomLeft: Radius.circular(4), bottomRight: Radius.circular(4)),
                         ),
                         color: Colors.grey.shade800),
-                    child: Text("${student["login"]}", style:  TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, height:1.0 ))
+                    child: Text("${student["login"]??""}", style:  TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, height:1.0 ))
                   ),
 
                 ),
@@ -171,7 +152,7 @@ class _StudentViewState extends State<StudentView> {
                   Row(children: [
                     Icon(Icons.email_outlined, color: Colors.white),
                     SizedBox(width: 4,),
-                    Text("${student["email"]}", style:  TextStyle(color: Colors.white)),
+                    Text("${student["email"]??""}", style:  TextStyle(color: Colors.white)),
                   ],),
                 Row(
                   children: [
@@ -211,7 +192,7 @@ class _StudentViewState extends State<StudentView> {
                   children: [
                     Center(child: Text("Skills", style: TextStyle(color: Colors.black))),
                  ... _skills.map(
-                     (skill)=> Text("${skill["name"]}: ${levelRound(skill["level"])} - ${getPercentage(skill["level"])}%", style: TextStyle(color: Colors.black))
+                     (skill)=> Text("${skill["name"]??""}: ${levelRound(skill["level"])} - ${getPercentage(skill["level"])}%", style: TextStyle(color: Colors.black))
                  )
                   ],
 
@@ -231,7 +212,7 @@ class _StudentViewState extends State<StudentView> {
                                 Color color = Colors.black;
                                 if (project["validated?"] == false)
                                   color = red;
-                                return Text("${project["project"]["name"]}",
+                                return Text("${project["project"]?["name"]??""}",
                                     style: TextStyle(color: color));
                                 }
                       )
