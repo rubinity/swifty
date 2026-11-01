@@ -131,21 +131,13 @@ class Api42{
       return [];
     }
     // print("resp ${resp.body.toString()}");
-
-
-
-
   }
 
   Image getImage(data, type, {double width = 0, double height = 0}){
-    // print("type: $type");
-    // print("type: : ${data["image"]["versions"]}");
-    var url = data["image"]["versions"][type];
+    String? url = data["image"]["versions"][type];
     if (url != null){
-      // print("test image");
-        var image = fetchNetImage(url, width: width, height: height);
+        Image image = fetchNetImage(url, width: width, height: height);
         return image;
-
     }
     return Image(image: AssetImage("assets/42.jpg") , width: 25, height: 25,);
   }
@@ -155,14 +147,14 @@ class Api42{
     Image image;
     if (width == 0){
       image = Image.network(url, headers: {"Authorization": "Bearer $token"},
-        errorBuilder: (context, error, stackTrace){ print("image error $error");
+        errorBuilder: (context, error, stackTrace){
         return Image(image: AssetImage("assets/42.jpg") , width: 25, height: 25,);
         },
       ) ;
     }
     else {
       image = Image.network(url, headers: {"Authorization": "Bearer $token"}, width: width, height: height,
-        errorBuilder: (context, error, stackTrace){ print("image error $error");
+        errorBuilder: (context, error, stackTrace){
         return Image(image: AssetImage("assets/42.jpg") , width: 25, height: 25,);
         },
       );}

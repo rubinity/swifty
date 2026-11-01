@@ -28,7 +28,8 @@ void main()
         ),
         inputDecorationTheme: InputDecorationTheme(isDense: true,
           border: OutlineInputBorder(),
-          constraints: const BoxConstraints(maxHeight: 40),
+          constraints: const BoxConstraints(maxHeight: 45),
+          errorStyle: TextStyle(height: 0, fontSize: 0),
         ),
       ),
       routes: {

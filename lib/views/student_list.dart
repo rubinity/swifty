@@ -453,6 +453,7 @@ class _StudentList extends State<StudentList>{
                         decoration: InputDecoration(
                           constraints: const BoxConstraints(maxHeight: 40, ) ,
                           labelText: "Page number", border: OutlineInputBorder(),
+                          errorStyle: TextStyle(height: 0, fontSize: 0),
                           labelStyle: TextStyle(height: 1.0, fontSize: 16),
                         ),
                         validator:(value){
@@ -481,6 +482,7 @@ class _StudentList extends State<StudentList>{
                           constraints: const BoxConstraints(maxHeight: 40, ) ,
                           labelText: "Items per page", border: OutlineInputBorder(),
                           labelStyle: TextStyle(height: 1.0, fontSize: 16),
+                          errorStyle: TextStyle(height: 0, fontSize: 0),
                         ),
                         onSaved: (value){
                             _params["per_page"] = value!;},
@@ -516,6 +518,7 @@ class _StudentList extends State<StudentList>{
                           constraints: const BoxConstraints(maxHeight: 40, maxWidth: 100) ,
                           labelText: "Login search", border: OutlineInputBorder(),
                           labelStyle: TextStyle(height: 1.0, fontSize: 18),
+                          errorStyle: TextStyle(height: 0, fontSize: 0),
                         ),
                         onChanged: (value){EasyDebounce.debounce("search", Duration(milliseconds: 500), ()=>_search(value));
                         }
